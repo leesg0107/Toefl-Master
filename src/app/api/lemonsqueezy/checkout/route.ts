@@ -1,60 +1,61 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-
-// Supabase for auth verification
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+import { createServerClient } from "@supabase/ssr";
 
 // Lemon Squeezy API
 const LEMONSQUEEZY_API_KEY = process.env.LEMONSQUEEZY_API_KEY;
 const LEMONSQUEEZY_STORE_ID = process.env.LEMONSQUEEZY_STORE_ID;
-const LEMONSQUEEZY_VARIANT_ID = process.env.LEMONSQUEEZY_VARIANT_ID; // Product variant for Premium subscription
+const LEMONSQUEEZY_VARIANT_ID = process.env.LEMONSQUEEZY_VARIANT_ID;
 
 export async function POST(request: NextRequest) {
   try {
-    // === SECURITY: Verify authentication ===
-    const cookieHeader = request.headers.get("cookie");
-    let userId: string | null = null;
-    let userEmail: string | null = null;
+    // === SECURITY: Verify authentication using Supabase SSR ===
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-    if (supabaseUrl && supabaseServiceKey) {
-      const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-      // Parse auth token from cookies
-      if (cookieHeader) {
-        const cookies = cookieHeader.split(";").reduce((acc, cookie) => {
-          const [key, value] = cookie.trim().split("=");
-          acc[key] = value;
-          return acc;
-        }, {} as Record<string, string>);
-
-        const tokenCookie = Object.keys(cookies).find(k => k.includes("auth-token"));
-        if (tokenCookie) {
-          try {
-            const parsed = JSON.parse(decodeURIComponent(cookies[tokenCookie]));
-            const accessToken = parsed.access_token;
-
-            if (accessToken) {
-              const { data: { user }, error } = await supabase.auth.getUser(accessToken);
-              if (!error && user) {
-                userId = user.id;
-                userEmail = user.email || null;
-              }
-            }
-          } catch {
-            // Cookie parsing failed
-          }
-        }
-      }
+    if (!supabaseUrl || !supabaseAnonKey) {
+      return NextResponse.json(
+        { error: "Server configuration error" },
+        { status: 500 }
+      );
     }
 
-    // Require authentication for checkout
-    if (!userId) {
+    // Create Supabase client with cookie handling
+    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+      cookies: {
+        getAll() {
+          const cookieHeader = request.headers.get("cookie") || "";
+          const cookies: { name: string; value: string }[] = [];
+
+          cookieHeader.split(";").forEach((cookie) => {
+            const [name, ...valueParts] = cookie.trim().split("=");
+            if (name) {
+              cookies.push({
+                name: name.trim(),
+                value: valueParts.join("="),
+              });
+            }
+          });
+
+          return cookies;
+        },
+        setAll() {
+          // Not needed for reading auth state
+        },
+      },
+    });
+
+    // Get current user
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
       return NextResponse.json(
         { error: "Please sign in to upgrade to Premium." },
         { status: 401 }
       );
     }
+
+    const userId = user.id;
+    const userEmail = user.email;
 
     // Check if Lemon Squeezy is configured
     if (!LEMONSQUEEZY_API_KEY || !LEMONSQUEEZY_STORE_ID || !LEMONSQUEEZY_VARIANT_ID) {
@@ -82,7 +83,7 @@ export async function POST(request: NextRequest) {
             checkout_options: {
               embed: false,
               media: false,
-              button_color: "#111827", // Match our design
+              button_color: "#111827",
             },
             checkout_data: {
               email: userEmail,
