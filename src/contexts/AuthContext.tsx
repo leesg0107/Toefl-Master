@@ -37,18 +37,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
 
-  const fetchProfile = async (userId: string) => {
-    // For demo purposes, create a mock profile
-    // In production, this would fetch from Supabase
-    const mockProfile: UserProfile = {
-      id: userId,
-      email: user?.email || "",
-      name: user?.user_metadata?.full_name || user?.user_metadata?.name || null,
-      avatar_url: user?.user_metadata?.avatar_url || null,
-      subscription_tier: "free",
-      subscription_expires_at: null,
-    };
-    setProfile(mockProfile);
+  const fetchProfile = async (userId: string, userEmail?: string, userMetadata?: Record<string, string>) => {
+    try {
+      // Fetch profile from Supabase database
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userId)
+        .single();
+
+      if (error) {
+        // If profile doesn't exist (new user), create one with defaults
+        if (error.code === "PGRST116") {
+          const newProfile: UserProfile = {
+            id: userId,
+            email: userEmail || user?.email || "",
+            name: userMetadata?.full_name || userMetadata?.name || user?.user_metadata?.full_name || null,
+            avatar_url: userMetadata?.avatar_url || user?.user_metadata?.avatar_url || null,
+            subscription_tier: "free",
+            subscription_expires_at: null,
+          };
+          setProfile(newProfile);
+          return;
+        }
+        console.error("Error fetching profile:", error);
+        return;
+      }
+
+      setProfile({
+        id: data.id,
+        email: data.email,
+        name: data.name,
+        avatar_url: data.avatar_url,
+        subscription_tier: data.subscription_tier || "free",
+        subscription_expires_at: data.subscription_expires_at,
+      });
+    } catch (err) {
+      console.error("Error in fetchProfile:", err);
+    }
   };
 
   const refreshProfile = async () => {
@@ -63,7 +89,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        await fetchProfile(session.user.id);
+        await fetchProfile(
+          session.user.id,
+          session.user.email,
+          session.user.user_metadata as Record<string, string>
+        );
       }
       setLoading(false);
     };
@@ -75,7 +105,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(session);
         setUser(session?.user ?? null);
         if (session?.user) {
-          await fetchProfile(session.user.id);
+          await fetchProfile(
+            session.user.id,
+            session.user.email,
+            session.user.user_metadata as Record<string, string>
+          );
         } else {
           setProfile(null);
         }
