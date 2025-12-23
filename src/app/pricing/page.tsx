@@ -65,6 +65,7 @@ export default function PricingPage() {
       const response = await fetch("/api/lemonsqueezy/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include", // Important: Send cookies with request
       });
 
       const data = await response.json();
