@@ -10,9 +10,10 @@ export async function POST(request: NextRequest) {
   try {
     // === SECURITY: Verify authentication via Authorization header ===
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-    if (!supabaseUrl || !supabaseServiceKey) {
+    if (!supabaseUrl || !supabaseAnonKey) {
+      console.error("Missing Supabase config:", { supabaseUrl: !!supabaseUrl, supabaseAnonKey: !!supabaseAnonKey });
       return NextResponse.json(
         { error: "Server configuration error" },
         { status: 500 }
@@ -21,6 +22,8 @@ export async function POST(request: NextRequest) {
 
     // Get access token from Authorization header
     const authHeader = request.headers.get("authorization");
+    console.log("Auth header present:", !!authHeader);
+
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return NextResponse.json(
         { error: "Please sign in to upgrade to Premium." },
@@ -29,12 +32,24 @@ export async function POST(request: NextRequest) {
     }
 
     const accessToken = authHeader.substring(7); // Remove "Bearer " prefix
+    console.log("Access token length:", accessToken.length);
 
-    // Verify the token with Supabase
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    // Create Supabase client and set the session manually
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    });
+
+    // Get the user using the token
     const { data: { user }, error: authError } = await supabase.auth.getUser(accessToken);
 
+    console.log("Auth result:", { user: !!user, error: authError?.message });
+
     if (authError || !user) {
+      console.error("Auth error:", authError);
       return NextResponse.json(
         { error: "Please sign in to upgrade to Premium." },
         { status: 401 }
@@ -43,6 +58,7 @@ export async function POST(request: NextRequest) {
 
     const userId = user.id;
     const userEmail = user.email;
+    console.log("User authenticated:", { userId, userEmail });
 
     // Check if Lemon Squeezy is configured
     if (!LEMONSQUEEZY_API_KEY || !LEMONSQUEEZY_STORE_ID || !LEMONSQUEEZY_VARIANT_ID) {
