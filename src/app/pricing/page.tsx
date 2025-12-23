@@ -62,10 +62,9 @@ export default function PricingPage() {
     setLoading(true);
 
     try {
-      const response = await fetch("/api/create-checkout", {
+      const response = await fetch("/api/lemonsqueezy/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan: "premium" }),
       });
 
       const data = await response.json();
@@ -74,10 +73,12 @@ export default function PricingPage() {
         window.location.href = data.url;
       } else if (data.message) {
         alert(data.message);
+      } else if (data.error) {
+        alert(data.error);
       }
     } catch (error) {
       console.error("Checkout error:", error);
-      alert("결제 시스템이 아직 설정되지 않았습니다. Stripe 설정 후 이용 가능합니다.");
+      alert("결제 시스템 연결에 문제가 있습니다. 잠시 후 다시 시도해주세요.");
     } finally {
       setLoading(false);
     }
@@ -205,7 +206,7 @@ export default function PricingPage() {
             <div>
               <h4 className="font-medium text-gray-900 mb-1">What payment methods are accepted?</h4>
               <p className="text-gray-500 text-sm">
-                Credit/debit cards, 카카오페이, 네이버페이, and bank transfer.
+                Credit/debit cards and PayPal via Lemon Squeezy secure checkout.
               </p>
             </div>
           </div>

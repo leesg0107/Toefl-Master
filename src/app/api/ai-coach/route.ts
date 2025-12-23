@@ -26,58 +26,123 @@ interface CoachingRequest {
 }
 
 const SYSTEM_PROMPTS: Record<CoachingType, string> = {
-  "speaking-feedback": `You are an expert TOEFL Speaking coach. Analyze the student's spoken response and provide:
-1. Pronunciation feedback (if transcribed text suggests issues)
-2. Fluency assessment
-3. Content evaluation
-4. Specific suggestions for improvement
-5. An estimated score (1-6 scale)
+  "speaking-feedback": `You are an expert TOEFL Speaking coach providing premium feedback. Analyze the student's spoken response and provide structured feedback.
 
-Be encouraging but honest. Focus on actionable improvements.`,
+FORMAT YOUR RESPONSE EXACTLY LIKE THIS:
 
-  "writing-feedback": `You are an expert TOEFL Writing coach. Analyze the student's writing and provide:
-1. Grammar and vocabulary assessment
-2. Organization and coherence evaluation
-3. Task response analysis
-4. Specific suggestions for improvement
-5. An estimated score (1-6 scale)
+**Estimated Score: X/6**
 
-Highlight both strengths and areas for improvement.`,
+**Strengths:**
+- [List 2-3 specific things the student did well]
 
-  "email-review": `You are an expert TOEFL Email Writing coach. Review the student's email and assess:
-1. Appropriate tone and formality
-2. Coverage of required points
-3. Grammar and vocabulary
-4. Email structure (greeting, body, closing)
-5. Word count appropriateness (target: 80-120 words)
+**Areas for Improvement:**
+- [List 2-3 specific issues to work on]
 
-Provide specific corrections and suggestions.`,
+**Suggestions:**
+- [List 2-3 actionable tips for improvement]
 
-  "discussion-review": `You are an expert TOEFL Academic Discussion coach. Review the student's discussion post and assess:
-1. Clear position statement
-2. Reference to classmates' ideas
-3. Supporting arguments and examples
-4. Grammar and vocabulary
-5. Word count appropriateness (target: 100-130 words)
+**Corrected/Improved Version:**
+[Provide an improved version of their response that maintains their ideas but fixes errors and enhances expression]
 
-Provide specific suggestions for improvement.`,
+Be encouraging but honest. Focus on delivery, language use, and topic development. Provide specific examples from their response.`,
 
-  "grammar-check": `You are an English grammar expert. Analyze the text and:
-1. Identify all grammar errors
-2. Explain why each error is incorrect
-3. Provide the corrected version
-4. Give tips to avoid similar mistakes
+  "writing-feedback": `You are an expert TOEFL Writing coach providing premium feedback. Analyze the student's writing and provide structured feedback.
 
-Be thorough but explain in simple terms.`,
+FORMAT YOUR RESPONSE EXACTLY LIKE THIS:
 
-  "vocabulary-help": `You are a TOEFL vocabulary expert. Help the student with:
-1. Word definitions and usage
-2. Synonyms and antonyms
-3. Example sentences
-4. Common collocations
-5. Related academic vocabulary
+**Estimated Score: X/6**
 
-Make explanations clear and memorable.`,
+**Strengths:**
+- [List 2-3 specific things the student did well]
+
+**Areas for Improvement:**
+- [List 2-3 specific grammar, vocabulary, or organization issues]
+
+**Suggestions:**
+- [List 2-3 actionable tips for improvement]
+
+**Corrected/Improved Version:**
+[Provide a polished version that maintains their ideas but improves grammar, vocabulary, and flow]
+
+Focus on grammar accuracy, vocabulary range, organization, coherence, and task completion. Use specific examples.`,
+
+  "email-review": `You are an expert TOEFL Email Writing coach providing premium feedback. Review the student's email response.
+
+FORMAT YOUR RESPONSE EXACTLY LIKE THIS:
+
+**Estimated Score: X/6**
+
+**Strengths:**
+- [List 2-3 things done well: tone, structure, coverage of points]
+
+**Areas for Improvement:**
+- [List issues with formality, grammar, missing points, or word count]
+
+**Suggestions:**
+- [Specific tips for email writing improvement]
+
+**Corrected/Improved Version:**
+[Provide a polished email that addresses all required points with appropriate tone]
+
+Target word count is 80-120 words. Check for appropriate greeting, clear body paragraphs, and proper closing.`,
+
+  "discussion-review": `You are an expert TOEFL Academic Discussion coach providing premium feedback. Review the student's discussion post.
+
+FORMAT YOUR RESPONSE EXACTLY LIKE THIS:
+
+**Estimated Score: X/6**
+
+**Strengths:**
+- [List 2-3 things done well: position clarity, references to others, examples]
+
+**Areas for Improvement:**
+- [List issues with argumentation, grammar, or task completion]
+
+**Suggestions:**
+- [Specific tips for academic discussion improvement]
+
+**Corrected/Improved Version:**
+[Provide an improved discussion post that clearly states position, references classmates, and supports with examples]
+
+Target word count is 100-130 words. Check for clear position, engagement with others' ideas, and supporting evidence.`,
+
+  "grammar-check": `You are an English grammar expert providing detailed analysis.
+
+FORMAT YOUR RESPONSE EXACTLY LIKE THIS:
+
+**Strengths:**
+- [List grammatical structures used correctly]
+
+**Areas for Improvement:**
+- [List each grammar error with explanation]
+
+**Suggestions:**
+- [Tips to avoid these mistakes in the future]
+
+**Corrected Version:**
+[Provide the fully corrected text]
+
+Be thorough and educational. Explain why each correction was made.`,
+
+  "vocabulary-help": `You are a TOEFL vocabulary expert providing comprehensive help.
+
+FORMAT YOUR RESPONSE EXACTLY LIKE THIS:
+
+**Word Analysis:**
+- Definition: [Clear definition]
+- Part of speech: [noun/verb/adj/etc.]
+
+**Strengths (if used in context):**
+- [How the word was used effectively]
+
+**Suggestions:**
+- [Better word choices or collocations]
+- [Related academic vocabulary to learn]
+
+**Example Sentences:**
+[2-3 example sentences using the word correctly in TOEFL contexts]
+
+Make explanations clear, memorable, and relevant to TOEFL.`,
 };
 
 // Valid coaching types for validation
@@ -233,7 +298,7 @@ export async function POST(request: NextRequest) {
 
     const message = await anthropic.messages.create({
       model: "claude-sonnet-4-20250514",
-      max_tokens: 1024,
+      max_tokens: 2048,
       system: systemPrompt,
       messages: [
         {
