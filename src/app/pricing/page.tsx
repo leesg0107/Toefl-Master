@@ -54,8 +54,19 @@ export default function PricingPage() {
   const [loading, setLoading] = useState(false);
 
   const handleUpgrade = async () => {
-    if (!user || !session) {
+    // Debug logging
+    console.log("handleUpgrade called");
+    console.log("user:", user);
+    console.log("session:", session);
+    console.log("access_token exists:", !!session?.access_token);
+
+    if (!user) {
       router.push("/auth?redirect=/pricing");
+      return;
+    }
+
+    if (!session?.access_token) {
+      alert("세션이 만료되었습니다. 페이지를 새로고침 해주세요.");
       return;
     }
 
