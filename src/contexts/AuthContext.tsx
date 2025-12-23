@@ -85,10 +85,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const getSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      console.log("[AuthContext] Getting session...");
+      const { data: { session }, error } = await supabase.auth.getSession();
+      console.log("[AuthContext] getSession result - session:", !!session, "user:", !!session?.user, "error:", error);
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
+        console.log("[AuthContext] User found, fetching profile for:", session.user.email);
         await fetchProfile(
           session.user.id,
           session.user.email,
@@ -96,6 +99,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         );
       }
       setLoading(false);
+      console.log("[AuthContext] Loading complete, user:", !!session?.user);
     };
 
     getSession();
