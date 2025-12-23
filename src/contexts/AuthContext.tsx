@@ -84,25 +84,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    const getSession = async () => {
-      console.log("[AuthContext] Getting session...");
-      const { data: { session }, error } = await supabase.auth.getSession();
-      console.log("[AuthContext] getSession result - session:", !!session, "user:", !!session?.user, "error:", error);
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        console.log("[AuthContext] User found, fetching profile for:", session.user.email);
-        await fetchProfile(
-          session.user.id,
-          session.user.email,
-          session.user.user_metadata as Record<string, string>
-        );
+    const initAuth = async () => {
+      console.log("[AuthContext] Initializing auth...");
+      try {
+        // Use getUser() which is more reliable with SSR cookies
+        const { data: { user: currentUser }, error } = await supabase.auth.getUser();
+        console.log("[AuthContext] getUser result - user:", !!currentUser, "error:", error?.message);
+
+        if (currentUser) {
+          setUser(currentUser);
+          // Also get session for completeness
+          const { data: { session: currentSession } } = await supabase.auth.getSession();
+          setSession(currentSession);
+          console.log("[AuthContext] User found, fetching profile for:", currentUser.email);
+          await fetchProfile(
+            currentUser.id,
+            currentUser.email,
+            currentUser.user_metadata as Record<string, string>
+          );
+        } else {
+          setUser(null);
+          setSession(null);
+        }
+      } catch (err) {
+        console.error("[AuthContext] Error during init:", err);
       }
       setLoading(false);
-      console.log("[AuthContext] Loading complete, user:", !!session?.user);
+      console.log("[AuthContext] Loading complete");
     };
 
-    getSession();
+    initAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
