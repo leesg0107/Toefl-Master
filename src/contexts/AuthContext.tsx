@@ -84,20 +84,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
+    let isSubscribed = true;
+
     const initAuth = async () => {
       console.log("[AuthContext] Initializing auth...");
+
+      // Set a timeout to prevent infinite loading
+      const timeoutId = setTimeout(() => {
+        if (isSubscribed && loading) {
+          console.log("[AuthContext] Timeout reached, setting loading to false");
+          setLoading(false);
+        }
+      }, 3000);
+
       try {
-        // First try getSession which reads from local storage/cookies
-        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        console.log("[AuthContext] Calling getSession...");
+        const { data, error } = await supabase.auth.getSession();
+        console.log("[AuthContext] getSession returned - data:", !!data, "error:", error?.message);
+
+        const currentSession = data?.session;
         console.log("[AuthContext] getSession result - session:", !!currentSession);
+
+        if (!isSubscribed) {
+          clearTimeout(timeoutId);
+          return;
+        }
 
         if (currentSession?.user) {
           console.log("[AuthContext] Session found with user:", currentSession.user.email);
           setSession(currentSession);
           setUser(currentSession.user);
-          setLoading(false); // Show UI immediately
+          setLoading(false);
 
-          // Fetch profile in background
           await fetchProfile(
             currentSession.user.id,
             currentSession.user.email,
@@ -109,9 +127,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setSession(null);
           setLoading(false);
         }
+
+        clearTimeout(timeoutId);
       } catch (err) {
         console.error("[AuthContext] Error during init:", err);
-        setLoading(false);
+        if (isSubscribed) setLoading(false);
       }
       console.log("[AuthContext] Init complete");
     };
@@ -119,14 +139,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     initAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event: string, session: Session | null) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        if (session?.user) {
+      async (_event: string, newSession: Session | null) => {
+        console.log("[AuthContext] Auth state changed:", _event);
+        setSession(newSession);
+        setUser(newSession?.user ?? null);
+        if (newSession?.user) {
           await fetchProfile(
-            session.user.id,
-            session.user.email,
-            session.user.user_metadata as Record<string, string>
+            newSession.user.id,
+            newSession.user.email,
+            newSession.user.user_metadata as Record<string, string>
           );
         } else {
           setProfile(null);
@@ -135,8 +156,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     );
 
-    return () => subscription.unsubscribe();
-  }, [supabase.auth]);
+    return () => {
+      isSubscribed = false;
+      subscription.unsubscribe();
+    };
+  }, []);
 
   const signInWithGoogle = async () => {
     const redirectUrl = `${window.location.origin}/auth/callback`;
@@ -169,8 +193,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
+    console.log("[AuthContext] Signing out...");
     await supabase.auth.signOut();
     setProfile(null);
+    setUser(null);
+    setSession(null);
+    console.log("[AuthContext] Signed out");
   };
 
   // Check if user has active premium subscription
