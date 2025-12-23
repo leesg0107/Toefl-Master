@@ -1,189 +1,128 @@
 @import "tailwindcss";
 
 :root {
-  /* TOEFL iBT Style - Light Professional Theme */
-  --background: #f5f5f5;
-  --foreground: #1a1a1a;
-  --card-bg: #ffffff;
-  --card-border: #d1d5db;
-
-  /* ETS TOEFL Colors */
-  --toefl-blue: #0077c8;
-  --toefl-blue-dark: #005a9e;
-  --toefl-blue-light: #e6f3fb;
-  --toefl-header: #003366;
-  --toefl-gray: #666666;
-  --toefl-light-gray: #e5e5e5;
-
-  /* Status Colors */
-  --success: #28a745;
-  --warning: #ffc107;
-  --danger: #dc3545;
-  --info: #17a2b8;
+  --background: #ffffff;
+  --foreground: #111827;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   font-size: 14px;
   line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* TOEFL-style scrollbar */
+/* Minimal scrollbar */
 ::-webkit-scrollbar {
-  width: 12px;
+  width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #e5e5e5;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #999999;
-  border-radius: 6px;
-  border: 2px solid #e5e5e5;
+  background: #d1d5db;
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #666666;
+  background: #9ca3af;
 }
 
-/* TOEFL Test Interface Styles */
-.toefl-header {
-  background: linear-gradient(180deg, #004080 0%, #003366 100%);
-  color: white;
-  padding: 8px 16px;
-  font-weight: 600;
-}
-
-.toefl-panel {
-  background: white;
-  border: 1px solid #cccccc;
-  border-radius: 4px;
-}
-
-.toefl-instructions {
-  background: #fffde7;
-  border: 1px solid #ffc107;
-  padding: 12px;
-  border-radius: 4px;
-  font-size: 14px;
-}
-
-.toefl-button {
-  background: linear-gradient(180deg, #0088dd 0%, #0066aa 100%);
-  color: white;
-  padding: 8px 24px;
-  border: 1px solid #004080;
-  border-radius: 4px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.toefl-button:hover {
-  background: linear-gradient(180deg, #0099ee 0%, #0077bb 100%);
-}
-
-.toefl-button:disabled {
-  background: #cccccc;
-  border-color: #999999;
-  cursor: not-allowed;
-}
-
-.toefl-button-secondary {
-  background: linear-gradient(180deg, #f0f0f0 0%, #e0e0e0 100%);
-  color: #333333;
-  border: 1px solid #999999;
-}
-
-.toefl-button-secondary:hover {
-  background: linear-gradient(180deg, #ffffff 0%, #f0f0f0 100%);
-}
-
-.toefl-timer {
-  background: #003366;
-  color: white;
-  padding: 4px 12px;
-  border-radius: 4px;
-  font-family: "Courier New", monospace;
+/* Timer styling */
+.timer {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
   font-size: 18px;
-  font-weight: bold;
+  font-weight: 600;
+  color: #111827;
 }
 
-.toefl-timer.warning {
-  background: #dc3545;
-  animation: timer-blink 1s infinite;
+.timer.warning {
+  color: #dc2626;
 }
 
-@keyframes timer-blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
-}
-
-/* Text area styling like TOEFL */
-.toefl-textarea {
-  font-family: "Times New Roman", Georgia, serif;
-  font-size: 16px;
-  line-height: 1.6;
+/* Text area styling */
+.writing-textarea {
+  font-size: 15px;
+  line-height: 1.7;
   padding: 16px;
-  border: 2px solid #cccccc;
-  border-radius: 4px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
   resize: none;
   background: white;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-.toefl-textarea:focus {
+.writing-textarea:focus {
   outline: none;
-  border-color: #0077c8;
-  box-shadow: 0 0 0 2px rgba(0, 119, 200, 0.2);
-}
-
-/* Reading passage style */
-.toefl-passage {
-  font-family: "Times New Roman", Georgia, serif;
-  font-size: 16px;
-  line-height: 1.8;
-  color: #1a1a1a;
-  background: white;
-  padding: 20px;
-  border: 1px solid #cccccc;
-}
-
-/* Word count display */
-.toefl-word-count {
-  background: #e5e5e5;
-  padding: 4px 12px;
-  border-radius: 4px;
-  font-size: 13px;
-  color: #666666;
+  border-color: #9ca3af;
+  box-shadow: 0 0 0 3px rgba(156, 163, 175, 0.1);
 }
 
 /* Premium badge */
 .premium-badge {
-  background: linear-gradient(135deg, #ffd700 0%, #ffb300 100%);
-  color: #1a1a1a;
+  background: #fef3c7;
+  color: #92400e;
   padding: 2px 8px;
   border-radius: 4px;
   font-size: 11px;
   font-weight: 600;
-  text-transform: uppercase;
 }
 
 /* Animations */
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .animate-fade-in {
-  animation: fadeIn 0.3s ease-out;
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* Button base */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 8px;
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: #111827;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #1f2937;
+}
+
+.btn-secondary {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.btn-secondary:hover {
+  background: #e5e7eb;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }

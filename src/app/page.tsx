@@ -1,16 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { Mic, PenTool, BookOpen, FileText, ArrowRight, Target, Clock, Zap } from "lucide-react";
+import { Mic, PenTool, BookOpen, FileText, ArrowRight } from "lucide-react";
 
 const sections = [
   {
     href: "/speaking",
     title: "Speaking",
     icon: Mic,
-    color: "from-blue-500 to-cyan-500",
-    bgColor: "bg-blue-500/10",
-    borderColor: "border-blue-500/30",
     description: "Listen & Repeat, Interview Practice",
     features: ["7 sentences repeat", "4 interview questions", "Voice recording"],
   },
@@ -18,9 +15,6 @@ const sections = [
     href: "/writing",
     title: "Writing",
     icon: PenTool,
-    color: "from-purple-500 to-pink-500",
-    bgColor: "bg-purple-500/10",
-    borderColor: "border-purple-500/30",
     description: "Build Sentence, Email, Discussion",
     features: ["Sentence building", "Email writing (7min)", "Academic discussion"],
   },
@@ -28,9 +22,6 @@ const sections = [
     href: "/voca",
     title: "Vocabulary",
     icon: BookOpen,
-    color: "from-green-500 to-emerald-500",
-    bgColor: "bg-green-500/10",
-    borderColor: "border-green-500/30",
     description: "TOEFL Essential Words",
     features: ["500+ words", "Flashcards", "Quiz mode"],
   },
@@ -38,112 +29,72 @@ const sections = [
     href: "/study-notes",
     title: "Study Notes",
     icon: FileText,
-    color: "from-orange-500 to-yellow-500",
-    bgColor: "bg-orange-500/10",
-    borderColor: "border-orange-500/30",
     description: "Feedback & Templates",
     features: ["Score tracking", "Templates", "Improvement tips"],
   },
 ];
 
-const highlights = [
-  {
-    icon: Target,
-    title: "2026 Format",
-    description: "Updated for the new TOEFL iBT format starting January 2026",
-  },
-  {
-    icon: Clock,
-    title: "Timed Practice",
-    description: "Real exam timing with 45sec speaking and 7min email writing",
-  },
-  {
-    icon: Zap,
-    title: "Instant Feedback",
-    description: "Get immediate feedback on your responses",
-  },
-];
-
 export default function Home() {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/5 to-transparent" />
-        <div className="max-w-7xl mx-auto px-4 py-20">
-          <div className="text-center mb-16 animate-fade-in">
-            <h1 className="text-5xl md:text-7xl font-bold mb-6">
-              <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-                TOEFL Master
-              </span>
-            </h1>
-            <p className="text-xl md:text-2xl text-gray-400 mb-4">
-              2026 New Format Preparation
-            </p>
-            <p className="text-gray-500 max-w-2xl mx-auto">
-              Prepare for the new TOEFL iBT format with adaptive practice,
-              real exam simulations, and comprehensive feedback.
-            </p>
-          </div>
+      <section className="border-b border-gray-100">
+        <div className="max-w-4xl mx-auto px-6 py-16 text-center">
+          <h1 className="text-4xl font-bold text-gray-900 mb-3">
+            TOEFL Master
+          </h1>
+          <p className="text-lg text-gray-500 mb-2">
+            2026 New Format Preparation
+          </p>
+          <p className="text-gray-400 text-sm max-w-lg mx-auto">
+            Prepare for the new TOEFL iBT format with adaptive practice and comprehensive feedback.
+          </p>
+        </div>
+      </section>
 
-          {/* Highlights */}
-          <div className="grid md:grid-cols-3 gap-6 mb-16">
-            {highlights.map((item, index) => (
-              <div
-                key={index}
-                className="flex items-start gap-4 p-6 rounded-xl bg-[#1e293b]/50 border border-[#334155] animate-fade-in"
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
-                <div className="p-3 rounded-lg bg-blue-500/10">
-                  <item.icon className="w-6 h-6 text-blue-400" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-white mb-1">{item.title}</h3>
-                  <p className="text-sm text-gray-400">{item.description}</p>
-                </div>
-              </div>
-            ))}
+      {/* Quick Info */}
+      <section className="border-b border-gray-100 bg-gray-50">
+        <div className="max-w-4xl mx-auto px-6 py-4">
+          <div className="flex flex-wrap justify-center gap-8 text-sm text-gray-500">
+            <span>2026 Format</span>
+            <span className="text-gray-300">|</span>
+            <span>45sec Speaking</span>
+            <span className="text-gray-300">|</span>
+            <span>7min Email Writing</span>
+            <span className="text-gray-300">|</span>
+            <span>Instant Feedback</span>
           </div>
         </div>
       </section>
 
       {/* Sections Grid */}
-      <section className="max-w-7xl mx-auto px-4 pb-20">
-        <h2 className="text-2xl font-bold text-center mb-10">Choose Your Practice</h2>
-        <div className="grid md:grid-cols-2 gap-6">
-          {sections.map((section, index) => {
+      <section className="max-w-4xl mx-auto px-6 py-12">
+        <div className="grid md:grid-cols-2 gap-4">
+          {sections.map((section) => {
             const Icon = section.icon;
             return (
               <Link
                 key={section.href}
                 href={section.href}
-                className={`group relative p-8 rounded-2xl ${section.bgColor} border ${section.borderColor}
-                  hover:scale-[1.02] transition-all duration-300 animate-fade-in overflow-hidden`}
-                style={{ animationDelay: `${index * 100}ms` }}
+                className="group p-6 rounded-lg border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all"
               >
-                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br opacity-20 rounded-full blur-3xl" />
-
-                <div className="relative">
-                  <div className={`inline-flex p-4 rounded-xl bg-gradient-to-r ${section.color} mb-4`}>
-                    <Icon className="w-8 h-8 text-white" />
+                <div className="flex items-start gap-4">
+                  <div className="p-2 rounded-lg bg-gray-100 group-hover:bg-gray-200 transition-colors">
+                    <Icon className="w-5 h-5 text-gray-600" />
                   </div>
-
-                  <h3 className="text-2xl font-bold text-white mb-2">{section.title}</h3>
-                  <p className="text-gray-400 mb-4">{section.description}</p>
-
-                  <ul className="space-y-2 mb-6">
-                    {section.features.map((feature, i) => (
-                      <li key={i} className="flex items-center gap-2 text-sm text-gray-300">
-                        <span className={`w-1.5 h-1.5 rounded-full bg-gradient-to-r ${section.color}`} />
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-
-                  <div className="flex items-center gap-2 text-sm font-medium text-white group-hover:gap-4 transition-all">
-                    Start Practice
-                    <ArrowRight className="w-4 h-4" />
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-1">{section.title}</h3>
+                    <p className="text-sm text-gray-500 mb-3">{section.description}</p>
+                    <ul className="space-y-1">
+                      {section.features.map((feature, i) => (
+                        <li key={i} className="flex items-center gap-2 text-xs text-gray-400">
+                          <span className="w-1 h-1 rounded-full bg-gray-300" />
+                          {feature}
+                        </li>
+                      ))}
+                    </ul>
                   </div>
+                  <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-gray-500 group-hover:translate-x-1 transition-all" />
                 </div>
               </Link>
             );
@@ -152,10 +103,9 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-[#334155] py-8">
-        <div className="max-w-7xl mx-auto px-4 text-center text-gray-500 text-sm">
-          <p>TOEFL Master 2026 - Practice for the new TOEFL iBT format</p>
-          <p className="mt-2">New format starts January 21, 2026</p>
+      <footer className="border-t border-gray-100 py-6">
+        <div className="max-w-4xl mx-auto px-6 text-center text-gray-400 text-xs">
+          <p>TOEFL Master 2026 · New format starts January 21, 2026</p>
         </div>
       </footer>
     </div>

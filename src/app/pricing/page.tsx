@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Check, Crown, Sparkles, ArrowLeft, Loader2 } from "lucide-react";
+import { Check, Star, ArrowLeft, Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const plans = [
@@ -62,7 +62,6 @@ export default function PricingPage() {
     setLoading(true);
 
     try {
-      // In production, this would redirect to Stripe/Toss checkout
       const response = await fetch("/api/create-checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -74,7 +73,6 @@ export default function PricingPage() {
       if (data.url) {
         window.location.href = data.url;
       } else if (data.message) {
-        // Demo mode
         alert(data.message);
       }
     } catch (error) {
@@ -86,26 +84,23 @@ export default function PricingPage() {
   };
 
   return (
-    <div className="min-h-screen py-12 px-4">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-white py-12 px-6">
+      <div className="max-w-3xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-4"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Home
-          </Link>
-        </div>
+        <Link
+          href="/"
+          className="inline-flex items-center gap-2 text-gray-400 hover:text-gray-600 text-sm mb-8"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back
+        </Link>
 
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-white mb-4">
+          <h1 className="text-3xl font-bold text-gray-900 mb-3">
             Upgrade Your TOEFL Prep
           </h1>
-          <p className="text-gray-400 max-w-2xl mx-auto">
+          <p className="text-gray-500 max-w-xl mx-auto">
             Get personalized AI coaching to maximize your score.
-            Our AI analyzes your responses and provides detailed feedback.
           </p>
         </div>
 
@@ -114,45 +109,43 @@ export default function PricingPage() {
           {plans.map((plan) => (
             <div
               key={plan.name}
-              className={`relative p-8 rounded-2xl border ${
+              className={`relative p-6 rounded-lg border ${
                 plan.popular
-                  ? "bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-purple-500/50"
-                  : "bg-[#1e293b] border-[#334155]"
+                  ? "border-gray-900 ring-1 ring-gray-900"
+                  : "border-gray-200"
               }`}
             >
               {plan.popular && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <span className="px-4 py-1 bg-purple-500 rounded-full text-sm font-medium">
-                    Most Popular
+                  <span className="px-3 py-1 bg-gray-900 text-white rounded-full text-xs font-medium">
+                    Recommended
                   </span>
                 </div>
               )}
 
               <div className="mb-6">
-                <h2 className="text-2xl font-bold text-white mb-2 flex items-center gap-2">
+                <h2 className="text-xl font-bold text-gray-900 mb-2 flex items-center gap-2">
                   {plan.name}
-                  {plan.name === "Premium" && <Crown className="w-5 h-5 text-yellow-400" />}
+                  {plan.name === "Premium" && <Star className="w-4 h-4 text-amber-500" />}
                 </h2>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-bold text-white">{plan.price}</span>
+                  <span className="text-3xl font-bold text-gray-900">{plan.price}</span>
                   <span className="text-gray-400">/{plan.period}</span>
                 </div>
-                <p className="text-gray-400 mt-2">{plan.description}</p>
+                <p className="text-gray-500 text-sm mt-2">{plan.description}</p>
               </div>
 
-              <ul className="space-y-3 mb-8">
+              <ul className="space-y-2 mb-6">
                 {plan.features.map((feature, i) => (
-                  <li key={i} className="flex items-start gap-3">
-                    <Check className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
-                    <span className="text-gray-300">{feature}</span>
+                  <li key={i} className="flex items-start gap-2 text-sm">
+                    <Check className="w-4 h-4 text-gray-900 flex-shrink-0 mt-0.5" />
+                    <span className="text-gray-600">{feature}</span>
                   </li>
                 ))}
                 {plan.notIncluded.map((feature, i) => (
-                  <li key={`not-${i}`} className="flex items-start gap-3 opacity-50">
-                    <span className="w-5 h-5 flex items-center justify-center flex-shrink-0">
-                      —
-                    </span>
-                    <span className="text-gray-500 line-through">{feature}</span>
+                  <li key={`not-${i}`} className="flex items-start gap-2 text-sm opacity-50">
+                    <span className="w-4 text-center">—</span>
+                    <span className="text-gray-400 line-through">{feature}</span>
                   </li>
                 ))}
               </ul>
@@ -160,34 +153,31 @@ export default function PricingPage() {
               {plan.name === "Free" ? (
                 <button
                   disabled
-                  className="w-full py-3 bg-[#334155] text-gray-400 rounded-lg font-medium cursor-not-allowed"
+                  className="w-full py-2.5 bg-gray-100 text-gray-400 rounded-lg text-sm font-medium cursor-not-allowed"
                 >
                   {isPremium ? "Previously Used" : "Current Plan"}
                 </button>
               ) : isPremium ? (
                 <button
                   disabled
-                  className="w-full py-3 bg-green-500/20 text-green-400 rounded-lg font-medium cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full py-2.5 bg-green-50 text-green-600 rounded-lg text-sm font-medium cursor-not-allowed flex items-center justify-center gap-2"
                 >
-                  <Check className="w-5 h-5" />
+                  <Check className="w-4 h-4" />
                   Active Subscription
                 </button>
               ) : (
                 <button
                   onClick={handleUpgrade}
                   disabled={loading}
-                  className="w-full py-3 bg-purple-500 hover:bg-purple-600 disabled:bg-purple-500/50 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+                  className="w-full py-2.5 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
                 >
                   {loading ? (
                     <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <Loader2 className="w-4 h-4 animate-spin" />
                       Processing...
                     </>
                   ) : (
-                    <>
-                      <Sparkles className="w-5 h-5" />
-                      {plan.cta}
-                    </>
+                    plan.cta
                   )}
                 </button>
               )}
@@ -196,31 +186,26 @@ export default function PricingPage() {
         </div>
 
         {/* FAQ */}
-        <div className="p-8 rounded-2xl bg-[#1e293b] border border-[#334155]">
-          <h3 className="text-xl font-semibold text-white mb-6">
-            Frequently Asked Questions
-          </h3>
+        <div className="border-t border-gray-100 pt-10">
+          <h3 className="text-lg font-semibold text-gray-900 mb-6">FAQ</h3>
           <div className="space-y-6">
             <div>
-              <h4 className="font-medium text-white mb-2">How does AI coaching work?</h4>
-              <p className="text-gray-400 text-sm">
+              <h4 className="font-medium text-gray-900 mb-1">How does AI coaching work?</h4>
+              <p className="text-gray-500 text-sm">
                 Our AI analyzes your speaking and writing responses, providing detailed feedback
-                on grammar, vocabulary, coherence, and more. It also estimates your score and
-                gives personalized tips for improvement.
+                on grammar, vocabulary, coherence, and estimated scores.
               </p>
             </div>
             <div>
-              <h4 className="font-medium text-white mb-2">Can I cancel anytime?</h4>
-              <p className="text-gray-400 text-sm">
-                Yes! You can cancel your subscription at any time. You&apos;ll continue to have
-                Premium access until the end of your billing period.
+              <h4 className="font-medium text-gray-900 mb-1">Can I cancel anytime?</h4>
+              <p className="text-gray-500 text-sm">
+                Yes! Cancel anytime. You keep Premium access until your billing period ends.
               </p>
             </div>
             <div>
-              <h4 className="font-medium text-white mb-2">What payment methods are accepted?</h4>
-              <p className="text-gray-400 text-sm">
-                We accept credit/debit cards, and Korean payment methods including
-                카카오페이, 네이버페이, and bank transfer.
+              <h4 className="font-medium text-gray-900 mb-1">What payment methods are accepted?</h4>
+              <p className="text-gray-500 text-sm">
+                Credit/debit cards, 카카오페이, 네이버페이, and bank transfer.
               </p>
             </div>
           </div>
