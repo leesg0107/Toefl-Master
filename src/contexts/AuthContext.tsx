@@ -87,30 +87,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const initAuth = async () => {
       console.log("[AuthContext] Initializing auth...");
       try {
-        // Use getUser() which is more reliable with SSR cookies
-        const { data: { user: currentUser }, error } = await supabase.auth.getUser();
-        console.log("[AuthContext] getUser result - user:", !!currentUser, "error:", error?.message);
+        // First try getSession which reads from local storage/cookies
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        console.log("[AuthContext] getSession result - session:", !!currentSession);
 
-        if (currentUser) {
-          setUser(currentUser);
-          // Also get session for completeness
-          const { data: { session: currentSession } } = await supabase.auth.getSession();
+        if (currentSession?.user) {
+          console.log("[AuthContext] Session found with user:", currentSession.user.email);
           setSession(currentSession);
-          console.log("[AuthContext] User found, fetching profile for:", currentUser.email);
+          setUser(currentSession.user);
+          setLoading(false); // Show UI immediately
+
+          // Fetch profile in background
           await fetchProfile(
-            currentUser.id,
-            currentUser.email,
-            currentUser.user_metadata as Record<string, string>
+            currentSession.user.id,
+            currentSession.user.email,
+            currentSession.user.user_metadata as Record<string, string>
           );
         } else {
+          console.log("[AuthContext] No session found");
           setUser(null);
           setSession(null);
+          setLoading(false);
         }
       } catch (err) {
         console.error("[AuthContext] Error during init:", err);
+        setLoading(false);
       }
-      setLoading(false);
-      console.log("[AuthContext] Loading complete");
+      console.log("[AuthContext] Init complete");
     };
 
     initAuth();
