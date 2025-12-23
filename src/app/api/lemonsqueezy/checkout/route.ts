@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@supabase/ssr";
+import { createClient } from "@supabase/supabase-js";
 
 // Lemon Squeezy API
 const LEMONSQUEEZY_API_KEY = process.env.LEMONSQUEEZY_API_KEY;
@@ -8,44 +8,31 @@ const LEMONSQUEEZY_VARIANT_ID = process.env.LEMONSQUEEZY_VARIANT_ID;
 
 export async function POST(request: NextRequest) {
   try {
-    // === SECURITY: Verify authentication using Supabase SSR ===
+    // === SECURITY: Verify authentication via Authorization header ===
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-    if (!supabaseUrl || !supabaseAnonKey) {
+    if (!supabaseUrl || !supabaseServiceKey) {
       return NextResponse.json(
         { error: "Server configuration error" },
         { status: 500 }
       );
     }
 
-    // Create Supabase client with cookie handling
-    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
-      cookies: {
-        getAll() {
-          const cookieHeader = request.headers.get("cookie") || "";
-          const cookies: { name: string; value: string }[] = [];
+    // Get access token from Authorization header
+    const authHeader = request.headers.get("authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json(
+        { error: "Please sign in to upgrade to Premium." },
+        { status: 401 }
+      );
+    }
 
-          cookieHeader.split(";").forEach((cookie) => {
-            const [name, ...valueParts] = cookie.trim().split("=");
-            if (name) {
-              cookies.push({
-                name: name.trim(),
-                value: valueParts.join("="),
-              });
-            }
-          });
+    const accessToken = authHeader.substring(7); // Remove "Bearer " prefix
 
-          return cookies;
-        },
-        setAll() {
-          // Not needed for reading auth state
-        },
-      },
-    });
-
-    // Get current user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    // Verify the token with Supabase
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const { data: { user }, error: authError } = await supabase.auth.getUser(accessToken);
 
     if (authError || !user) {
       return NextResponse.json(

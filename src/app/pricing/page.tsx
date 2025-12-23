@@ -49,12 +49,12 @@ const plans = [
 ];
 
 export default function PricingPage() {
-  const { user, isPremium } = useAuth();
+  const { user, isPremium, session } = useAuth();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
   const handleUpgrade = async () => {
-    if (!user) {
+    if (!user || !session) {
       router.push("/auth?redirect=/pricing");
       return;
     }
@@ -64,8 +64,10 @@ export default function PricingPage() {
     try {
       const response = await fetch("/api/lemonsqueezy/checkout", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include", // Important: Send cookies with request
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session.access_token}`,
+        },
       });
 
       const data = await response.json();
