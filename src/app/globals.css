@@ -1,64 +1,189 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0f172a;
-  --foreground: #f1f5f9;
-  --card-bg: #1e293b;
-  --card-border: #334155;
-  --primary: #3b82f6;
-  --primary-hover: #2563eb;
-  --accent: #8b5cf6;
-  --success: #22c55e;
-  --warning: #f59e0b;
-  --danger: #ef4444;
+  /* TOEFL iBT Style - Light Professional Theme */
+  --background: #f5f5f5;
+  --foreground: #1a1a1a;
+  --card-bg: #ffffff;
+  --card-border: #d1d5db;
+
+  /* ETS TOEFL Colors */
+  --toefl-blue: #0077c8;
+  --toefl-blue-dark: #005a9e;
+  --toefl-blue-light: #e6f3fb;
+  --toefl-header: #003366;
+  --toefl-gray: #666666;
+  --toefl-light-gray: #e5e5e5;
+
+  /* Status Colors */
+  --success: #28a745;
+  --warning: #ffc107;
+  --danger: #dc3545;
+  --info: #17a2b8;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  --font-sans: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
 }
 
-/* Custom scrollbar */
+/* TOEFL-style scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 12px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--card-bg);
+  background: #e5e5e5;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--card-border);
-  border-radius: 4px;
+  background: #999999;
+  border-radius: 6px;
+  border: 2px solid #e5e5e5;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--primary);
+  background: #666666;
+}
+
+/* TOEFL Test Interface Styles */
+.toefl-header {
+  background: linear-gradient(180deg, #004080 0%, #003366 100%);
+  color: white;
+  padding: 8px 16px;
+  font-weight: 600;
+}
+
+.toefl-panel {
+  background: white;
+  border: 1px solid #cccccc;
+  border-radius: 4px;
+}
+
+.toefl-instructions {
+  background: #fffde7;
+  border: 1px solid #ffc107;
+  padding: 12px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.toefl-button {
+  background: linear-gradient(180deg, #0088dd 0%, #0066aa 100%);
+  color: white;
+  padding: 8px 24px;
+  border: 1px solid #004080;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.toefl-button:hover {
+  background: linear-gradient(180deg, #0099ee 0%, #0077bb 100%);
+}
+
+.toefl-button:disabled {
+  background: #cccccc;
+  border-color: #999999;
+  cursor: not-allowed;
+}
+
+.toefl-button-secondary {
+  background: linear-gradient(180deg, #f0f0f0 0%, #e0e0e0 100%);
+  color: #333333;
+  border: 1px solid #999999;
+}
+
+.toefl-button-secondary:hover {
+  background: linear-gradient(180deg, #ffffff 0%, #f0f0f0 100%);
+}
+
+.toefl-timer {
+  background: #003366;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-family: "Courier New", monospace;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.toefl-timer.warning {
+  background: #dc3545;
+  animation: timer-blink 1s infinite;
+}
+
+@keyframes timer-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* Text area styling like TOEFL */
+.toefl-textarea {
+  font-family: "Times New Roman", Georgia, serif;
+  font-size: 16px;
+  line-height: 1.6;
+  padding: 16px;
+  border: 2px solid #cccccc;
+  border-radius: 4px;
+  resize: none;
+  background: white;
+}
+
+.toefl-textarea:focus {
+  outline: none;
+  border-color: #0077c8;
+  box-shadow: 0 0 0 2px rgba(0, 119, 200, 0.2);
+}
+
+/* Reading passage style */
+.toefl-passage {
+  font-family: "Times New Roman", Georgia, serif;
+  font-size: 16px;
+  line-height: 1.8;
+  color: #1a1a1a;
+  background: white;
+  padding: 20px;
+  border: 1px solid #cccccc;
+}
+
+/* Word count display */
+.toefl-word-count {
+  background: #e5e5e5;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  color: #666666;
+}
+
+/* Premium badge */
+.premium-badge {
+  background: linear-gradient(135deg, #ffd700 0%, #ffb300 100%);
+  color: #1a1a1a;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
 }
 
 /* Animations */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.3); }
-  50% { box-shadow: 0 0 40px rgba(59, 130, 246, 0.6); }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .animate-fade-in {
-  animation: fadeIn 0.5s ease-out;
-}
-
-.animate-pulse-glow {
-  animation: pulse-glow 2s ease-in-out infinite;
+  animation: fadeIn 0.3s ease-out;
 }

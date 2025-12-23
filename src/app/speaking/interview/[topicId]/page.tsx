@@ -13,10 +13,12 @@ import {
   Trophy,
   RotateCcw,
   Play,
-  Square
+  Square,
+  User
 } from "lucide-react";
 import { interviewTopics } from "@/data/speaking/interview";
 import { useTextToSpeech, useSpeechRecognition, useTimer } from "@/hooks/useSpeech";
+import { AICoach } from "@/components/AICoach";
 
 export default function InterviewSessionPage() {
   const params = useParams();
@@ -28,6 +30,7 @@ export default function InterviewSessionPage() {
   const [phase, setPhase] = useState<"intro" | "question" | "answering" | "review">("intro");
   const [answers, setAnswers] = useState<string[]>([]);
   const [currentAnswer, setCurrentAnswer] = useState("");
+  const [showIntroMessage, setShowIntroMessage] = useState(true);
 
   const { speak, isSpeaking, isSupported: ttsSupported } = useTextToSpeech();
   const {
@@ -42,11 +45,11 @@ export default function InterviewSessionPage() {
 
   if (!topic) {
     return (
-      <div className="min-h-screen py-12 px-4 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-gray-400 mb-4">Topic not found</p>
-          <Link href="/speaking/interview" className="text-purple-400 hover:underline">
-            Back to Interview
+      <div className="min-h-screen bg-[#f5f5f5] py-12 px-4 flex items-center justify-center">
+        <div className="text-center bg-white p-8 rounded border border-[#ccc]">
+          <p className="text-[#666] mb-4">Topic not found</p>
+          <Link href="/speaking/interview" className="text-[#0077c8] hover:underline">
+            Back to Interview Topics
           </Link>
         </div>
       </div>
@@ -57,12 +60,25 @@ export default function InterviewSessionPage() {
   const isComplete = currentIndex >= topic.questions.length;
 
   const startInterview = () => {
-    setPhase("question");
-    playQuestion();
+    setShowIntroMessage(true);
+    // First speak the intro message
+    speak(topic.introMessage, () => {
+      setShowIntroMessage(false);
+      setPhase("question");
+      // Then speak the first question
+      setTimeout(() => {
+        speak(currentQuestion.text, () => {
+          setPhase("answering");
+          timer.reset(45);
+          timer.start();
+          startListening();
+        });
+      }, 500);
+    });
   };
 
   const playQuestion = () => {
-    speak(currentQuestion, () => {
+    speak(currentQuestion.text, () => {
       setPhase("answering");
       timer.reset(45);
       timer.start();
@@ -85,7 +101,7 @@ export default function InterviewSessionPage() {
     if (currentIndex + 1 < topic.questions.length) {
       setPhase("question");
       setTimeout(() => {
-        speak(topic.questions[currentIndex + 1], () => {
+        speak(topic.questions[currentIndex + 1].text, () => {
           setPhase("answering");
           timer.reset(45);
           timer.start();
@@ -102,6 +118,7 @@ export default function InterviewSessionPage() {
     setTranscript("");
     setCurrentAnswer("");
     timer.reset(45);
+    setShowIntroMessage(true);
   };
 
   // Auto-finish when timer ends
@@ -120,39 +137,60 @@ export default function InterviewSessionPage() {
 
   if (isComplete) {
     return (
-      <div className="min-h-screen py-12 px-4">
-        <div className="max-w-2xl mx-auto">
-          <div className="p-8 rounded-2xl bg-[#1e293b] border border-[#334155]">
-            <div className="text-center mb-8">
-              <Trophy className="w-16 h-16 text-yellow-400 mx-auto mb-4" />
-              <h1 className="text-3xl font-bold text-white mb-2">Interview Complete!</h1>
-              <p className="text-gray-400">{topic.title}</p>
+      <div className="min-h-screen bg-[#f5f5f5]">
+        {/* Header */}
+        <div className="bg-gradient-to-b from-[#004080] to-[#003366] text-white px-4 py-2">
+          <div className="flex items-center gap-4">
+            <span className="font-bold">Speaking Section</span>
+            <span className="text-white/80">|</span>
+            <span className="text-sm">Interview Complete</span>
+          </div>
+        </div>
+
+        <div className="max-w-3xl mx-auto p-6">
+          <div className="bg-white border border-[#ccc] rounded overflow-hidden">
+            <div className="bg-[#e5e5e5] px-4 py-3 border-b border-[#ccc] text-center">
+              <Trophy className="w-12 h-12 text-[#ffc107] mx-auto mb-2" />
+              <h1 className="text-xl font-bold text-[#333]">Interview Complete!</h1>
+              <p className="text-[#666]">{topic.title}</p>
             </div>
 
-            <div className="space-y-6 mb-8">
+            <div className="p-4 space-y-4">
               {topic.questions.map((question, i) => (
-                <div key={i} className="p-4 rounded-lg bg-[#0f172a] border border-[#334155]">
-                  <p className="text-sm text-purple-400 mb-2">Question {i + 1}</p>
-                  <p className="text-white mb-3">{question}</p>
-                  <div className="p-3 bg-[#1e293b] rounded-lg">
-                    <p className="text-sm text-gray-400 mb-1">Your answer:</p>
-                    <p className="text-gray-300 text-sm">{answers[i]}</p>
+                <div key={i} className="p-4 bg-[#f5f5f5] border border-[#ddd] rounded">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-6 h-6 bg-[#0077c8] text-white rounded-full flex items-center justify-center text-xs font-bold">
+                      {i + 1}
+                    </div>
+                    <span className="text-sm text-[#666]">Question {i + 1}</span>
+                  </div>
+                  <p className="text-[#333] mb-3">{question.text}</p>
+                  <div className="p-3 bg-white border border-[#ccc] rounded">
+                    <p className="text-xs text-[#999] mb-1">Your response:</p>
+                    <p className="text-[#444] text-sm">{answers[i]}</p>
                   </div>
                 </div>
               ))}
+
+              {/* AI Coach */}
+              <AICoach
+                type="speaking-feedback"
+                content={answers.map((a, i) => `Q${i + 1}: ${topic.questions[i].text}\nA: ${a}`).join("\n\n")}
+                context={`Interview Topic: ${topic.title}\nResearch Context: ${topic.researchContext}`}
+              />
             </div>
 
-            <div className="flex gap-4 justify-center">
+            <div className="p-4 border-t border-[#ddd] flex gap-4 justify-center">
               <button
                 onClick={restartInterview}
-                className="flex items-center gap-2 px-6 py-3 bg-purple-500 hover:bg-purple-600 rounded-lg transition-colors"
+                className="toefl-button-secondary px-6 py-2 rounded flex items-center gap-2"
               >
                 <RotateCcw className="w-4 h-4" />
                 Try Again
               </button>
               <Link
                 href="/speaking/interview"
-                className="flex items-center gap-2 px-6 py-3 bg-[#334155] hover:bg-[#475569] rounded-lg transition-colors"
+                className="toefl-button px-6 py-2 rounded"
               >
                 Choose Another Topic
               </Link>
@@ -164,36 +202,32 @@ export default function InterviewSessionPage() {
   }
 
   return (
-    <div className="min-h-screen py-12 px-4">
-      <div className="max-w-2xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <Link
-            href="/speaking/interview"
-            className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-4"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back
-          </Link>
-          <h1 className="text-2xl font-bold text-white mb-2">{topic.title}</h1>
-          <p className="text-gray-400 text-sm">{topic.scenario}</p>
+    <div className="min-h-screen bg-[#f5f5f5]">
+      {/* Header */}
+      <div className="bg-gradient-to-b from-[#004080] to-[#003366] text-white px-4 py-2 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <span className="font-bold">Speaking Section</span>
+          <span className="text-white/80">|</span>
+          <span className="text-sm">Take an Interview</span>
         </div>
+        {phase === "answering" && (
+          <div className={`toefl-timer ${timer.seconds <= 10 ? "warning" : ""}`}>
+            <Clock className="w-4 h-4 inline mr-2" />
+            {timer.formatTime()}
+          </div>
+        )}
+      </div>
 
+      <div className="max-w-3xl mx-auto p-6">
         {/* Progress */}
         {phase !== "intro" && (
-          <div className="mb-8">
-            <div className="flex justify-between text-sm text-gray-400 mb-2">
+          <div className="mb-6 bg-white border border-[#ccc] rounded p-4">
+            <div className="flex justify-between text-sm text-[#666] mb-2">
               <span>Question {currentIndex + 1} of {topic.questions.length}</span>
-              {phase === "answering" && (
-                <span className={`flex items-center gap-1 ${timer.seconds <= 10 ? "text-red-400" : ""}`}>
-                  <Clock className="w-4 h-4" />
-                  {timer.formatTime()}
-                </span>
-              )}
             </div>
-            <div className="h-2 bg-[#334155] rounded-full overflow-hidden">
+            <div className="h-2 bg-[#e5e5e5] rounded-full overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all"
+                className="h-full bg-[#0077c8] transition-all"
                 style={{ width: `${((currentIndex) / topic.questions.length) * 100}%` }}
               />
             </div>
@@ -201,131 +235,192 @@ export default function InterviewSessionPage() {
         )}
 
         {/* Main Card */}
-        <div className="p-8 rounded-2xl bg-[#1e293b] border border-[#334155]">
-          {/* Intro Phase */}
-          {phase === "intro" && (
-            <div className="text-center">
-              <div className="inline-flex p-6 rounded-full bg-purple-500/20 mb-6">
-                <Mic className="w-12 h-12 text-purple-400" />
-              </div>
-              <h2 className="text-xl font-semibold text-white mb-4">Ready to start?</h2>
-              <p className="text-gray-400 mb-6">
-                You will answer {topic.questions.length} questions about {topic.title.toLowerCase()}.
-                Each question has a 45-second time limit with no preparation time.
-              </p>
-              <button
-                onClick={startInterview}
-                className="inline-flex items-center gap-2 px-8 py-4 bg-purple-500 hover:bg-purple-600 rounded-xl text-lg font-medium transition-colors"
-              >
-                <Play className="w-5 h-5" />
-                Start Interview
-              </button>
-            </div>
-          )}
+        <div className="bg-white border border-[#ccc] rounded overflow-hidden">
+          <div className="bg-[#e5e5e5] px-4 py-2 border-b border-[#ccc] font-semibold text-[#333]">
+            {topic.title}
+          </div>
 
-          {/* Question Phase (Playing) */}
-          {phase === "question" && (
-            <div className="text-center">
-              <div className="inline-flex p-6 rounded-full bg-purple-500/20 mb-6 animate-pulse">
-                <Volume2 className="w-12 h-12 text-purple-400" />
-              </div>
-              <p className="text-purple-400 text-sm mb-2">Question {currentIndex + 1}</p>
-              <p className="text-white text-lg">Listen to the question...</p>
-            </div>
-          )}
-
-          {/* Answering Phase */}
-          {phase === "answering" && (
-            <div className="text-center">
-              {/* Timer Display */}
-              <div className={`text-5xl font-bold mb-6 ${timer.seconds <= 10 ? "text-red-400" : "text-white"}`}>
-                {timer.formatTime()}
-              </div>
-
-              <p className="text-purple-400 text-sm mb-2">Question {currentIndex + 1}</p>
-              <p className="text-white text-lg mb-6">{currentQuestion}</p>
-
-              <div className={`inline-flex p-4 rounded-full mb-4 ${
-                isListening ? "bg-red-500/20 animate-pulse" : "bg-gray-500/20"
-              }`}>
-                {isListening ? (
-                  <Mic className="w-8 h-8 text-red-400" />
-                ) : (
-                  <MicOff className="w-8 h-8 text-gray-400" />
-                )}
-              </div>
-
-              <p className="text-sm text-gray-400 mb-4">
-                {isListening ? "Recording your answer..." : "Microphone off"}
-              </p>
-
-              {transcript && (
-                <div className="bg-[#0f172a] rounded-lg p-4 mb-4 text-left max-h-32 overflow-y-auto">
-                  <p className="text-sm text-gray-300">{transcript}</p>
+          <div className="p-6">
+            {/* Intro Phase */}
+            {phase === "intro" && (
+              <div className="text-center">
+                <div className="inline-flex p-4 rounded-full bg-[#e3f2fd] mb-4">
+                  <Mic className="w-10 h-10 text-[#0077c8]" />
                 </div>
-              )}
+                <h2 className="text-lg font-semibold text-[#333] mb-4">Take an Interview</h2>
 
-              <div className="flex gap-4 justify-center">
-                {!isListening && (
-                  <button
-                    onClick={startListening}
-                    disabled={!sttSupported}
-                    className="px-6 py-3 bg-red-500 hover:bg-red-600 rounded-lg transition-colors"
-                  >
-                    Start Recording
-                  </button>
-                )}
+                <div className="text-left bg-[#fffde7] border border-[#ffc107] p-4 rounded mb-4">
+                  <p className="text-sm text-[#333] mb-2">
+                    <strong>Instructions:</strong> An interviewer will ask you questions. Answer the questions
+                    and be sure to say as much as you can in the time allowed.
+                  </p>
+                  <p className="text-sm text-[#666]">
+                    No time for preparation will be provided. You have 45 seconds for each answer.
+                  </p>
+                </div>
+
+                <div className="text-left bg-[#f5f5f5] border border-[#ddd] p-4 rounded mb-6">
+                  <p className="text-[#333]">{topic.researchContext}</p>
+                </div>
+
                 <button
-                  onClick={finishAnswer}
-                  className="flex items-center gap-2 px-6 py-3 bg-purple-500 hover:bg-purple-600 rounded-lg transition-colors"
+                  onClick={startInterview}
+                  disabled={!ttsSupported}
+                  className="toefl-button px-8 py-3 rounded text-lg flex items-center gap-2 mx-auto"
                 >
-                  <Square className="w-4 h-4" />
-                  Finish Answer
+                  <Play className="w-5 h-5" />
+                  Start Interview
+                </button>
+
+                {!ttsSupported && (
+                  <p className="text-[#dc3545] text-sm mt-3">
+                    Text-to-speech is not supported in your browser.
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Question Phase (Playing intro or question) */}
+            {phase === "question" && (
+              <div className="text-center py-8">
+                <div className="inline-flex p-4 rounded-full bg-[#e3f2fd] mb-4 animate-pulse">
+                  <Volume2 className="w-10 h-10 text-[#0077c8]" />
+                </div>
+
+                {/* Researcher avatar */}
+                <div className="flex items-center justify-center gap-3 mb-4">
+                  <div className="w-12 h-12 rounded-full bg-[#2e7d32] flex items-center justify-center">
+                    <User className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="text-left">
+                    <p className="font-semibold text-[#333]">Researcher</p>
+                    <p className="text-xs text-[#666]">Speaking...</p>
+                  </div>
+                </div>
+
+                <p className="text-[#666]">
+                  {showIntroMessage ? "Introducing the interview..." : "Asking question..."}
+                </p>
+              </div>
+            )}
+
+            {/* Answering Phase */}
+            {phase === "answering" && (
+              <div className="text-center">
+                {/* Timer */}
+                <div className={`text-4xl font-bold mb-4 font-mono ${timer.seconds <= 10 ? "text-[#dc3545]" : "text-[#333]"}`}>
+                  0:{timer.seconds.toString().padStart(2, "0")}
+                </div>
+
+                {/* Question display */}
+                <div className="bg-[#f5f5f5] border border-[#ddd] p-4 rounded mb-4 text-left">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-8 h-8 rounded-full bg-[#2e7d32] flex items-center justify-center">
+                      <User className="w-4 h-4 text-white" />
+                    </div>
+                    <span className="text-sm text-[#666]">Researcher - Question {currentIndex + 1}</span>
+                  </div>
+                  <p className="text-[#333]">{currentQuestion.text}</p>
+                </div>
+
+                {/* Recording indicator */}
+                <div className={`inline-flex p-3 rounded-full mb-3 ${
+                  isListening ? "bg-[#ffebee] animate-pulse" : "bg-[#f5f5f5]"
+                }`}>
+                  {isListening ? (
+                    <Mic className="w-8 h-8 text-[#dc3545]" />
+                  ) : (
+                    <MicOff className="w-8 h-8 text-[#999]" />
+                  )}
+                </div>
+
+                <p className="text-sm text-[#666] mb-3">
+                  {isListening ? "Recording your answer..." : "Microphone off"}
+                </p>
+
+                {/* Transcript display */}
+                {transcript && (
+                  <div className="bg-white border border-[#ccc] rounded p-3 mb-4 text-left max-h-24 overflow-y-auto">
+                    <p className="text-xs text-[#999] mb-1">Your response:</p>
+                    <p className="text-sm text-[#333]">{transcript}</p>
+                  </div>
+                )}
+
+                <div className="flex gap-4 justify-center">
+                  {!isListening && sttSupported && (
+                    <button
+                      onClick={startListening}
+                      className="toefl-button-secondary px-4 py-2 rounded flex items-center gap-2"
+                    >
+                      <Mic className="w-4 h-4" />
+                      Start Recording
+                    </button>
+                  )}
+                  <button
+                    onClick={finishAnswer}
+                    className="toefl-button px-6 py-2 rounded flex items-center gap-2"
+                  >
+                    <Square className="w-4 h-4" />
+                    Finish Answer
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Review Phase */}
+            {phase === "review" && (
+              <div className="text-center">
+                <div className="bg-[#f5f5f5] border border-[#ddd] p-4 rounded mb-4 text-left">
+                  <p className="text-sm text-[#666] mb-2">Question {currentIndex + 1}:</p>
+                  <p className="text-[#333] mb-4">{currentQuestion.text}</p>
+
+                  <div className="bg-white border border-[#ccc] rounded p-3">
+                    <p className="text-xs text-[#999] mb-1">Your response:</p>
+                    <p className="text-[#444]">{answers[currentIndex]}</p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={nextQuestion}
+                  className="toefl-button px-8 py-3 rounded flex items-center gap-2 mx-auto"
+                >
+                  {currentIndex + 1 < topic.questions.length ? (
+                    <>
+                      Next Question
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  ) : (
+                    <>
+                      See Results
+                      <Trophy className="w-4 h-4" />
+                    </>
+                  )}
                 </button>
               </div>
-            </div>
-          )}
-
-          {/* Review Phase */}
-          {phase === "review" && (
-            <div className="text-center">
-              <p className="text-purple-400 text-sm mb-2">Question {currentIndex + 1}</p>
-              <p className="text-white text-lg mb-6">{currentQuestion}</p>
-
-              <div className="bg-[#0f172a] rounded-lg p-4 mb-6 text-left">
-                <p className="text-sm text-gray-400 mb-2">Your answer:</p>
-                <p className="text-gray-300">{answers[currentIndex]}</p>
-              </div>
-
-              <button
-                onClick={nextQuestion}
-                className="flex items-center gap-2 px-8 py-4 bg-purple-500 hover:bg-purple-600 rounded-xl font-medium transition-colors mx-auto"
-              >
-                {currentIndex + 1 < topic.questions.length ? (
-                  <>
-                    Next Question
-                    <ArrowRight className="w-4 h-4" />
-                  </>
-                ) : (
-                  <>
-                    See Results
-                    <Trophy className="w-4 h-4" />
-                  </>
-                )}
-              </button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         {/* Tips */}
         {phase === "intro" && (
-          <div className="mt-8 p-4 rounded-lg bg-[#1e293b]/50 border border-[#334155]">
-            <p className="text-sm text-gray-400">
-              <span className="text-white font-medium">Tip:</span> Start speaking immediately after the question.
-              Give specific examples and use the full 45 seconds.
+          <div className="mt-4 p-4 bg-white border border-[#ccc] rounded">
+            <p className="text-sm text-[#666]">
+              <span className="font-medium text-[#333]">Tip:</span> Start speaking immediately after the question.
+              Give specific examples and use the full 45 seconds. Speak clearly and at a natural pace.
             </p>
           </div>
         )}
+
+        {/* Back link */}
+        <div className="mt-4">
+          <Link
+            href="/speaking/interview"
+            className="inline-flex items-center gap-2 text-[#0077c8] hover:underline"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Topic Selection
+          </Link>
+        </div>
       </div>
     </div>
   );

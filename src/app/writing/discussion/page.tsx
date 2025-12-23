@@ -2,19 +2,26 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { ArrowLeft, MessageCircle, Clock, Check, ArrowRight, RotateCcw, User, AlertCircle } from "lucide-react";
+import { ArrowLeft, Clock, Star, Lock, ChevronRight, User } from "lucide-react";
 import { discussionTopics } from "@/data/writing/discussionTopics";
 import { useTimer } from "@/hooks/useSpeech";
+import { AICoach } from "@/components/AICoach";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function DiscussionPage() {
   const [selectedTopicId, setSelectedTopicId] = useState<string | null>(null);
   const [response, setResponse] = useState("");
   const [phase, setPhase] = useState<"select" | "writing" | "review">("select");
   const [wordCount, setWordCount] = useState(0);
+  const { isPremium } = useAuth();
 
   const timer = useTimer(600); // 10 minutes = 600 seconds
 
   const selectedTopic = discussionTopics.find(t => t.id === selectedTopicId);
+
+  // Filter topics based on premium status
+  const availableTopics = discussionTopics.filter(t => !t.isPremium || isPremium);
+  const lockedTopics = discussionTopics.filter(t => t.isPremium && !isPremium);
 
   useEffect(() => {
     const words = response.trim().split(/\s+/).filter(w => w.length > 0);
@@ -22,6 +29,9 @@ export default function DiscussionPage() {
   }, [response]);
 
   const startWriting = (topicId: string) => {
+    const topic = discussionTopics.find(t => t.id === topicId);
+    if (topic?.isPremium && !isPremium) return;
+
     setSelectedTopicId(topicId);
     setPhase("writing");
     setResponse("");
@@ -41,13 +51,7 @@ export default function DiscussionPage() {
     timer.reset(600);
   };
 
-  const getWordCountStatus = () => {
-    if (wordCount < 100) return { color: "text-red-400", message: "Too short (aim for 100-130 words)" };
-    if (wordCount <= 130) return { color: "text-green-400", message: "Good length!" };
-    if (wordCount <= 150) return { color: "text-yellow-400", message: "Slightly long" };
-    return { color: "text-red-400", message: "Too long (aim for 100-130 words)" };
-  };
-
+  // Auto-finish when timer ends
   useEffect(() => {
     if (timer.seconds === 0 && phase === "writing") {
       finishWriting();
@@ -56,67 +60,109 @@ export default function DiscussionPage() {
 
   if (phase === "select") {
     return (
-      <div className="min-h-screen py-12 px-4">
+      <div className="min-h-screen bg-[#f5f5f5] py-8 px-4">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
-          <div className="mb-8">
+          <div className="mb-6">
             <Link
               href="/writing"
-              className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-4"
+              className="inline-flex items-center gap-2 text-[#0077c8] hover:underline mb-4"
             >
               <ArrowLeft className="w-4 h-4" />
               Back to Writing
             </Link>
-            <h1 className="text-3xl font-bold text-white mb-2">Academic Discussion</h1>
-            <p className="text-gray-400">
-              Join an online class discussion. Read the professor&apos;s question and student responses,
-              then share your opinion.
-            </p>
+            <div className="bg-gradient-to-b from-[#004080] to-[#003366] text-white p-4 rounded-t">
+              <h1 className="text-xl font-bold">Write for an Academic Discussion</h1>
+            </div>
+            <div className="bg-white border border-[#ccc] border-t-0 p-4 rounded-b">
+              <p className="text-[#333] mb-3">
+                A professor has posted a question about a topic and students have responded with their
+                thoughts and ideas. Make a contribution to the discussion.
+              </p>
+              <p className="text-[#333] mb-2">
+                You will have <strong>10 minutes</strong> to write.
+              </p>
+              <p className="text-[#666] text-sm">
+                In your response, you should express and support your opinion and make a contribution
+                to the discussion in your own words. An effective response will contain at least 100 words.
+              </p>
+            </div>
           </div>
 
-          {/* Instructions */}
-          <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-6 mb-8">
-            <h3 className="text-green-400 font-semibold mb-2">How it works</h3>
-            <ol className="text-gray-300 text-sm space-y-1 list-decimal list-inside">
-              <li>Select a discussion topic below</li>
-              <li>Read the professor&apos;s question and student posts</li>
-              <li>Write your response (100-130 words)</li>
-              <li>Reference classmates&apos; ideas when relevant</li>
-              <li>Complete within 10 minutes</li>
-            </ol>
-          </div>
-
-          {/* Topic List */}
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold text-white">Choose a Topic</h2>
-            <div className="grid gap-4">
-              {discussionTopics.map((topic) => (
+          {/* Available Topics */}
+          <div className="mb-6">
+            <h2 className="text-lg font-semibold text-[#003366] mb-3">
+              Select a Topic ({availableTopics.length} available)
+            </h2>
+            <div className="space-y-2">
+              {availableTopics.map((topic, index) => (
                 <button
                   key={topic.id}
                   onClick={() => startWriting(topic.id)}
-                  className="group text-left p-6 rounded-xl bg-[#1e293b] border border-[#334155] hover:border-green-500/50 transition-all"
+                  className="w-full text-left p-4 bg-white border border-[#ccc] hover:border-[#0077c8] hover:bg-[#f0f8ff] transition-all rounded flex items-center gap-4 group"
                 >
-                  <div className="flex items-start gap-4">
-                    <div className="p-3 rounded-lg bg-green-500/10 group-hover:bg-green-500/20 transition-colors">
-                      <MessageCircle className="w-6 h-6 text-green-400" />
+                  <span className="w-8 h-8 bg-[#0077c8] text-white rounded flex items-center justify-center text-sm font-bold">
+                    {index + 1}
+                  </span>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="font-semibold text-[#333] group-hover:text-[#0077c8]">
+                        {topic.title}
+                      </h3>
+                      <span className="text-xs px-2 py-0.5 bg-[#e5e5e5] text-[#666] rounded">
+                        {topic.category}
+                      </span>
                     </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="text-lg font-semibold text-white">{topic.title}</h3>
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-[#334155] text-gray-400">
-                          {topic.category}
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-400 line-clamp-2">
-                        {topic.professorQuestion}
-                      </p>
-                    </div>
-                    <ArrowRight className="w-5 h-5 text-gray-500 group-hover:text-green-400 group-hover:translate-x-1 transition-all" />
+                    <p className="text-sm text-[#666] line-clamp-1">{topic.courseContext}</p>
                   </div>
+                  <ChevronRight className="w-5 h-5 text-[#999] group-hover:text-[#0077c8]" />
                 </button>
               ))}
             </div>
           </div>
+
+          {/* Locked Premium Topics */}
+          {lockedTopics.length > 0 && (
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <h2 className="text-lg font-semibold text-[#666]">
+                  Premium Topics ({lockedTopics.length})
+                </h2>
+                <span className="premium-badge flex items-center gap-1">
+                  <Star size={10} />
+                  Premium
+                </span>
+              </div>
+              <div className="space-y-2">
+                {lockedTopics.map((topic) => (
+                  <div
+                    key={topic.id}
+                    className="p-4 bg-[#f0f0f0] border border-[#ddd] rounded flex items-center gap-4 opacity-75"
+                  >
+                    <span className="w-8 h-8 bg-[#999] text-white rounded flex items-center justify-center">
+                      <Lock size={14} />
+                    </span>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="font-semibold text-[#666]">{topic.title}</h3>
+                        <span className="text-xs px-2 py-0.5 bg-[#ddd] text-[#888] rounded">
+                          {topic.category}
+                        </span>
+                      </div>
+                      <p className="text-sm text-[#999] line-clamp-1">{topic.courseContext}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <Link
+                href="/pricing"
+                className="inline-flex items-center gap-2 mt-4 text-[#0077c8] hover:underline text-sm"
+              >
+                <Star size={14} />
+                Upgrade to Premium to unlock all topics
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -125,178 +171,194 @@ export default function DiscussionPage() {
   if (!selectedTopic) return null;
 
   return (
-    <div className="min-h-screen py-12 px-4">
-      <div className="max-w-5xl mx-auto">
-        {/* Header */}
-        <div className="mb-6">
-          <button
-            onClick={selectNewTopic}
-            className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-4"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Choose Another
-          </button>
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-white">{selectedTopic.title}</h1>
-              <span className="text-sm text-gray-400">{selectedTopic.category}</span>
-            </div>
-            {phase === "writing" && (
-              <div className={`flex items-center gap-2 text-lg font-mono ${
-                timer.seconds <= 60 ? "text-red-400" : "text-white"
-              }`}>
-                <Clock className="w-5 h-5" />
-                {timer.formatTime()}
-              </div>
-            )}
-          </div>
+    <div className="min-h-screen bg-[#f5f5f5]">
+      {/* TOEFL-style Header Bar */}
+      <div className="bg-gradient-to-b from-[#004080] to-[#003366] text-white px-4 py-2 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <span className="font-bold">Writing Section</span>
+          <span className="text-white/80">|</span>
+          <span className="text-sm">Academic Discussion</span>
         </div>
-
-        <div className="grid lg:grid-cols-2 gap-6">
-          {/* Discussion Thread */}
-          <div className="space-y-4">
-            {/* Professor Question */}
-            <div className="p-5 rounded-xl bg-gradient-to-br from-green-500/10 to-teal-500/10 border border-green-500/30">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
-                  <User className="w-5 h-5 text-green-400" />
-                </div>
-                <div>
-                  <p className="font-medium text-green-400">Professor</p>
-                  <p className="text-xs text-gray-500">Discussion Prompt</p>
-                </div>
-              </div>
-              <p className="text-gray-200">{selectedTopic.professorQuestion}</p>
-            </div>
-
-            {/* Student A */}
-            <div className="p-5 rounded-xl bg-[#1e293b] border border-[#334155]">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
-                  <span className="text-blue-400 font-medium">{selectedTopic.studentA.name[0]}</span>
-                </div>
-                <div>
-                  <p className="font-medium text-white">{selectedTopic.studentA.name}</p>
-                  <p className="text-xs text-gray-500">Student</p>
-                </div>
-              </div>
-              <p className="text-gray-300 text-sm">{selectedTopic.studentA.response}</p>
-            </div>
-
-            {/* Student B */}
-            <div className="p-5 rounded-xl bg-[#1e293b] border border-[#334155]">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center">
-                  <span className="text-purple-400 font-medium">{selectedTopic.studentB.name[0]}</span>
-                </div>
-                <div>
-                  <p className="font-medium text-white">{selectedTopic.studentB.name}</p>
-                  <p className="text-xs text-gray-500">Student</p>
-                </div>
-              </div>
-              <p className="text-gray-300 text-sm">{selectedTopic.studentB.response}</p>
-            </div>
+        {phase === "writing" && (
+          <div className={`toefl-timer ${timer.seconds <= 60 ? "warning" : ""}`}>
+            <Clock className="w-4 h-4 inline mr-2" />
+            {timer.formatTime()}
           </div>
+        )}
+      </div>
 
-          {/* Response Editor */}
-          <div>
-            <div className="p-6 rounded-xl bg-[#1e293b] border border-[#334155] sticky top-20">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-white">Your Response</h3>
-                <div className={`text-sm ${getWordCountStatus().color}`}>
-                  {wordCount} words
-                </div>
+      <div className="max-w-6xl mx-auto p-4">
+        {phase === "writing" ? (
+          <div className="grid lg:grid-cols-2 gap-4">
+            {/* Left: Discussion Thread */}
+            <div className="bg-white border border-[#ccc] rounded overflow-hidden">
+              <div className="bg-[#e5e5e5] px-4 py-2 border-b border-[#ccc] font-semibold text-[#333]">
+                Discussion Board
               </div>
+              <div className="p-4 space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto">
+                {/* Instructions */}
+                <div className="text-sm text-[#666] border-b border-[#eee] pb-3">
+                  <p className="mb-2">{selectedTopic.courseContext} Write a post responding to the professor&apos;s question.</p>
+                  <p>In your response, you should:</p>
+                  <ul className="list-disc list-inside ml-2">
+                    <li>Express and support your opinion</li>
+                    <li>Make a contribution to the discussion in your own words</li>
+                  </ul>
+                  <p className="mt-2 font-medium">An effective response will contain at least 100 words.</p>
+                </div>
 
-              {phase === "writing" ? (
-                <>
-                  <textarea
-                    value={response}
-                    onChange={(e) => setResponse(e.target.value)}
-                    placeholder={`I agree with ${selectedTopic.studentA.name} because...
-
-or
-
-I have a different perspective on this topic...`}
-                    className="w-full h-64 bg-[#0f172a] border border-[#334155] rounded-lg p-4 text-white placeholder-gray-500 focus:outline-none focus:border-green-500 resize-none"
-                  />
-
-                  <p className={`text-xs mt-2 ${getWordCountStatus().color}`}>
-                    {getWordCountStatus().message}
-                  </p>
-
-                  <div className="flex justify-end mt-4">
-                    <button
-                      onClick={finishWriting}
-                      className="flex items-center gap-2 px-6 py-3 bg-green-500 hover:bg-green-600 rounded-lg transition-colors"
-                    >
-                      <Check className="w-4 h-4" />
-                      Submit Response
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="bg-[#0f172a] rounded-lg p-4 mb-6 whitespace-pre-wrap text-gray-300 min-h-32">
-                    {response || "(No response)"}
-                  </div>
-
-                  {/* Feedback */}
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="p-3 rounded-lg bg-[#0f172a]">
-                        <p className="text-sm text-gray-400">Word Count</p>
-                        <p className={`text-xl font-bold ${getWordCountStatus().color}`}>
-                          {wordCount}
-                        </p>
-                      </div>
-                      <div className="p-3 rounded-lg bg-[#0f172a]">
-                        <p className="text-sm text-gray-400">Time Used</p>
-                        <p className="text-xl font-bold text-white">
-                          {Math.floor((600 - timer.seconds) / 60)}:{((600 - timer.seconds) % 60).toString().padStart(2, "0")}
-                        </p>
-                      </div>
+                {/* Professor Question */}
+                <div className="p-4 bg-[#e8f4e8] border border-[#90c090] rounded">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-full bg-[#2e7d32] flex items-center justify-center">
+                      <User className="w-5 h-5 text-white" />
                     </div>
-
-                    <div className="p-4 rounded-lg bg-blue-500/10 border border-blue-500/30">
-                      <h5 className="text-blue-400 font-medium mb-2 flex items-center gap-2">
-                        <AlertCircle className="w-4 h-4" />
-                        Self-Check
-                      </h5>
-                      <ul className="text-sm text-gray-300 space-y-1">
-                        <li>Did you state your position clearly?</li>
-                        <li>Did you reference a classmate&apos;s idea?</li>
-                        <li>Did you provide specific reasons or examples?</li>
-                        <li>Is your response well-organized?</li>
-                      </ul>
+                    <div>
+                      <p className="font-semibold text-[#2e7d32]">Professor</p>
+                      <p className="text-xs text-[#666]">Course Instructor</p>
                     </div>
                   </div>
+                  <p className="text-[#333] leading-relaxed">{selectedTopic.professorQuestion}</p>
+                </div>
 
-                  <div className="flex gap-4 mt-6">
-                    <button
-                      onClick={() => {
-                        setPhase("writing");
-                        timer.reset(600);
-                        timer.start();
-                      }}
-                      className="flex items-center gap-2 px-4 py-2 bg-[#334155] hover:bg-[#475569] rounded-lg transition-colors"
-                    >
-                      <RotateCcw className="w-4 h-4" />
-                      Try Again
-                    </button>
-                    <button
-                      onClick={selectNewTopic}
-                      className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 rounded-lg transition-colors"
-                    >
-                      Next Topic
-                      <ArrowRight className="w-4 h-4" />
-                    </button>
+                {/* Student A */}
+                <div className="p-4 bg-white border border-[#ddd] rounded">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-full bg-[#1976d2] flex items-center justify-center">
+                      <span className="text-white font-bold">{selectedTopic.studentA.name[0]}</span>
+                    </div>
+                    <div>
+                      <p className="font-semibold text-[#333]">{selectedTopic.studentA.name}</p>
+                      <p className="text-xs text-[#666]">Student</p>
+                    </div>
                   </div>
-                </>
-              )}
+                  <p className="text-[#444] text-sm leading-relaxed">{selectedTopic.studentA.response}</p>
+                </div>
+
+                {/* Student B */}
+                <div className="p-4 bg-white border border-[#ddd] rounded">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-full bg-[#9c27b0] flex items-center justify-center">
+                      <span className="text-white font-bold">{selectedTopic.studentB.name[0]}</span>
+                    </div>
+                    <div>
+                      <p className="font-semibold text-[#333]">{selectedTopic.studentB.name}</p>
+                      <p className="text-xs text-[#666]">Student</p>
+                    </div>
+                  </div>
+                  <p className="text-[#444] text-sm leading-relaxed">{selectedTopic.studentB.response}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Right: Writing Area */}
+            <div className="bg-white border border-[#ccc] rounded overflow-hidden">
+              <div className="bg-[#e5e5e5] px-4 py-2 border-b border-[#ccc] flex items-center justify-between">
+                <span className="font-semibold text-[#333]">Your Response</span>
+                <span className="toefl-word-count">Word Count: {wordCount}</span>
+              </div>
+              <div className="p-4">
+                <textarea
+                  value={response}
+                  onChange={(e) => setResponse(e.target.value)}
+                  placeholder="Write your response to the discussion here..."
+                  className="toefl-textarea w-full h-80 text-[#333]"
+                  autoFocus
+                />
+                <div className="flex justify-between items-center mt-4">
+                  <button
+                    onClick={selectNewTopic}
+                    className="toefl-button-secondary px-6 py-2 rounded"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={finishWriting}
+                    className="toefl-button px-6 py-2 rounded"
+                  >
+                    Submit
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+        ) : (
+          /* Review Phase */
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-white border border-[#ccc] rounded overflow-hidden mb-4">
+              <div className="bg-[#e5e5e5] px-4 py-2 border-b border-[#ccc] font-semibold text-[#333]">
+                Your Submitted Response
+              </div>
+              <div className="p-4">
+                <p className="text-sm text-[#666] mb-3">Topic: {selectedTopic.title}</p>
+                <div className="toefl-passage min-h-32 whitespace-pre-wrap">
+                  {response || "(No response submitted)"}
+                </div>
+              </div>
+            </div>
+
+            {/* Statistics */}
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="bg-white border border-[#ccc] rounded p-4 text-center">
+                <p className="text-sm text-[#666]">Word Count</p>
+                <p className={`text-2xl font-bold ${
+                  wordCount >= 100 ? "text-[#28a745]" : "text-[#dc3545]"
+                }`}>
+                  {wordCount}
+                </p>
+                <p className="text-xs text-[#999]">Minimum: 100 words</p>
+              </div>
+              <div className="bg-white border border-[#ccc] rounded p-4 text-center">
+                <p className="text-sm text-[#666]">Time Used</p>
+                <p className="text-2xl font-bold text-[#333]">
+                  {Math.floor((600 - timer.seconds) / 60)}:{((600 - timer.seconds) % 60).toString().padStart(2, "0")}
+                </p>
+                <p className="text-xs text-[#999]">of 10:00 minutes</p>
+              </div>
+            </div>
+
+            {/* Self-Check */}
+            <div className="bg-[#fffde7] border border-[#ffc107] rounded p-4 mb-4">
+              <h3 className="font-semibold text-[#333] mb-2">Self-Check Checklist</h3>
+              <ul className="text-sm text-[#666] space-y-1">
+                <li>☐ Did you clearly state your position?</li>
+                <li>☐ Did you reference or respond to a classmate&apos;s idea?</li>
+                <li>☐ Did you provide specific reasons or examples?</li>
+                <li>☐ Is your response well-organized and coherent?</li>
+                <li>☐ Did you write at least 100 words?</li>
+              </ul>
+            </div>
+
+            {/* AI Coach */}
+            <div className="mb-4">
+              <AICoach
+                type="discussion-review"
+                content={response}
+                context={`Topic: ${selectedTopic.title}\nProfessor's question: ${selectedTopic.professorQuestion}\n${selectedTopic.studentA.name}'s view: ${selectedTopic.studentA.response}\n${selectedTopic.studentB.name}'s view: ${selectedTopic.studentB.response}`}
+              />
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-4">
+              <button
+                onClick={() => {
+                  setPhase("writing");
+                  timer.reset(600);
+                  timer.start();
+                }}
+                className="toefl-button-secondary px-6 py-2 rounded"
+              >
+                Try Again
+              </button>
+              <button
+                onClick={selectNewTopic}
+                className="toefl-button flex-1 px-6 py-2 rounded"
+              >
+                Next Topic
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
