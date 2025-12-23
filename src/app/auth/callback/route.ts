@@ -1,8 +1,8 @@
 import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
   const origin = requestUrl.origin;
@@ -10,6 +10,9 @@ export async function GET(request: Request) {
   console.log("[Auth Callback] Starting callback handler");
   console.log("[Auth Callback] Code present:", !!code);
   console.log("[Auth Callback] Origin:", origin);
+
+  // Create response that we'll add cookies to
+  let response = NextResponse.redirect(`${origin}/`);
 
   if (code) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -19,16 +22,14 @@ export async function GET(request: Request) {
     console.log("[Auth Callback] Supabase Anon Key configured:", !!supabaseAnonKey);
 
     if (supabaseUrl && supabaseAnonKey) {
-      const cookieStore = await cookies();
-
-      // Log existing cookies
-      const existingCookies = cookieStore.getAll();
+      // Log existing cookies from request
+      const existingCookies = request.cookies.getAll();
       console.log("[Auth Callback] Existing cookies:", existingCookies.map(c => c.name));
 
       const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
         cookies: {
           getAll() {
-            const all = cookieStore.getAll();
+            const all = request.cookies.getAll();
             console.log("[Auth Callback] getAll called, returning:", all.map(c => c.name));
             return all;
           },
@@ -36,7 +37,8 @@ export async function GET(request: Request) {
             console.log("[Auth Callback] setAll called with cookies:", cookiesToSet.map(c => ({ name: c.name, hasValue: !!c.value })));
             cookiesToSet.forEach(({ name, value, options }) => {
               console.log("[Auth Callback] Setting cookie:", name, "options:", JSON.stringify(options));
-              cookieStore.set(name, value, options);
+              // Set cookies on the response object
+              response.cookies.set(name, value, options);
             });
           },
         },
@@ -61,7 +63,6 @@ export async function GET(request: Request) {
     console.log("[Auth Callback] No code provided in URL");
   }
 
-  console.log("[Auth Callback] Redirecting to home page");
-  // Redirect to home page after successful auth
-  return NextResponse.redirect(`${origin}/`);
+  console.log("[Auth Callback] Redirecting to home page with cookies");
+  return response;
 }
