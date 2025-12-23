@@ -20,16 +20,13 @@ export function Navigation() {
   const { user, signOut, loading, isPremium, profile } = useAuth();
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-b from-[#004080] to-[#003366] shadow-md">
-      <div className="max-w-7xl mx-auto px-4">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200">
+      <div className="max-w-4xl mx-auto px-6">
         <div className="flex items-center justify-between h-14">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
-            <span className="text-xl font-bold text-white tracking-tight">
-              TOEFL iBT
-            </span>
-            <span className="text-xs bg-white/20 text-white px-2 py-0.5 rounded">
-              Practice
+            <span className="text-lg font-bold text-gray-900">
+              TOEFL Master
             </span>
           </Link>
 
@@ -43,10 +40,10 @@ export function Navigation() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`px-4 py-2 text-sm font-medium transition-all ${
+                  className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
                     isActive
-                      ? "bg-white/20 text-white"
-                      : "text-white/80 hover:text-white hover:bg-white/10"
+                      ? "bg-gray-100 text-gray-900"
+                      : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
                   }`}
                 >
                   {item.label}
@@ -60,19 +57,19 @@ export function Navigation() {
             {!isPremium && user && (
               <Link
                 href="/pricing"
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-400 hover:bg-amber-300 text-[#003366] rounded text-xs font-semibold transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-lg text-xs font-medium transition-colors"
               >
                 <Star size={12} />
                 <span>Upgrade</span>
               </Link>
             )}
             {loading ? (
-              <div className="w-7 h-7 rounded-full bg-white/20 animate-pulse" />
+              <div className="w-7 h-7 rounded-full bg-gray-100 animate-pulse" />
             ) : user ? (
               <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2 text-sm text-white/90">
+                <div className="flex items-center gap-2 text-sm text-gray-600">
                   {isPremium && (
-                    <span className="premium-badge">
+                    <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-medium rounded">
                       Premium
                     </span>
                   )}
@@ -80,7 +77,7 @@ export function Navigation() {
                 </div>
                 <button
                   onClick={() => signOut()}
-                  className="text-sm text-white/70 hover:text-white transition-colors"
+                  className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
                 >
                   Sign Out
                 </button>
@@ -88,9 +85,9 @@ export function Navigation() {
             ) : (
               <Link
                 href="/auth"
-                className="flex items-center gap-2 px-4 py-1.5 bg-white text-[#003366] rounded text-sm font-semibold hover:bg-gray-100 transition-colors"
+                className="flex items-center gap-2 px-4 py-1.5 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors"
               >
-                <User size={16} />
+                <User size={14} />
                 <span>Sign In</span>
               </Link>
             )}
@@ -98,7 +95,7 @@ export function Navigation() {
 
           {/* Mobile Menu Button */}
           <button
-            className="md:hidden p-2 text-white/80 hover:text-white"
+            className="md:hidden p-2 text-gray-500 hover:text-gray-700"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -108,7 +105,7 @@ export function Navigation() {
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-[#003366] border-t border-white/10">
+        <div className="md:hidden bg-white border-t border-gray-100">
           <div className="px-4 py-2 space-y-1">
             {navItems.map((item) => {
               const isActive = pathname === item.href;
@@ -118,29 +115,31 @@ export function Navigation() {
                   key={item.href}
                   href={item.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`block px-4 py-3 text-sm font-medium transition-all ${
+                  className={`block px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
                     isActive
-                      ? "bg-white/20 text-white"
-                      : "text-white/80 hover:text-white hover:bg-white/10"
+                      ? "bg-gray-100 text-gray-900"
+                      : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
                   }`}
                 >
                   {item.label}
                 </Link>
               );
             })}
-            <div className="border-t border-white/10 pt-2 mt-2">
+            <div className="border-t border-gray-100 pt-2 mt-2">
               {user ? (
                 <>
                   {isPremium && (
                     <div className="px-4 py-2">
-                      <span className="premium-badge">Premium Member</span>
+                      <span className="px-2 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded">
+                        Premium Member
+                      </span>
                     </div>
                   )}
                   {!isPremium && (
                     <Link
                       href="/pricing"
                       onClick={() => setMobileMenuOpen(false)}
-                      className="flex items-center gap-2 px-4 py-3 text-amber-400"
+                      className="flex items-center gap-2 px-4 py-3 text-amber-600"
                     >
                       <Star size={16} />
                       <span>Upgrade to Premium</span>
@@ -151,7 +150,7 @@ export function Navigation() {
                       signOut();
                       setMobileMenuOpen(false);
                     }}
-                    className="w-full text-left px-4 py-3 text-white/70 hover:text-white"
+                    className="w-full text-left px-4 py-3 text-gray-400 hover:text-gray-600"
                   >
                     Sign Out
                   </button>
@@ -160,7 +159,7 @@ export function Navigation() {
                 <Link
                   href="/auth"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-2 px-4 py-3 text-white"
+                  className="flex items-center gap-2 px-4 py-3 text-gray-900"
                 >
                   <User size={16} />
                   <span>Sign In</span>
