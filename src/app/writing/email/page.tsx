@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowLeft, Mail, Clock, Check, ArrowRight, RotateCcw, FileText, AlertCircle } from "lucide-react";
 import { emailPrompts } from "@/data/writing/emailPrompts";
 import { useTimer } from "@/hooks/useSpeech";
+import { AICoach } from "@/components/AICoach";
 
 export default function EmailWritingPage() {
   const [selectedPromptId, setSelectedPromptId] = useState<string | null>(null);
@@ -259,6 +260,13 @@ Sincerely,
                         <li>Did you include a proper closing?</li>
                       </ul>
                     </div>
+
+                    {/* AI Coach Feedback */}
+                    <AICoach
+                      type="email-review"
+                      content={emailContent}
+                      context={`Email scenario: ${selectedPrompt.title}\nSituation: ${selectedPrompt.situation}\nRecipient: ${selectedPrompt.recipient}\nRequired points: ${selectedPrompt.requiredPoints.join(", ")}`}
+                    />
 
                     {selectedPrompt.sampleResponse && (
                       <details className="group">

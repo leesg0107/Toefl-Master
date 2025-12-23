@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowLeft, MessageCircle, Clock, Check, ArrowRight, RotateCcw, User, AlertCircle } from "lucide-react";
 import { discussionTopics } from "@/data/writing/discussionTopics";
 import { useTimer } from "@/hooks/useSpeech";
+import { AICoach } from "@/components/AICoach";
 
 export default function DiscussionPage() {
   const [selectedTopicId, setSelectedTopicId] = useState<string | null>(null);
@@ -270,6 +271,13 @@ I have a different perspective on this topic...`}
                         <li>Is your response well-organized?</li>
                       </ul>
                     </div>
+
+                    {/* AI Coach Feedback */}
+                    <AICoach
+                      type="discussion-review"
+                      content={response}
+                      context={`Topic: ${selectedTopic.title}\nProfessor's question: ${selectedTopic.professorQuestion}\n${selectedTopic.studentA.name}'s view: ${selectedTopic.studentA.response}\n${selectedTopic.studentB.name}'s view: ${selectedTopic.studentB.response}`}
+                    />
                   </div>
 
                   <div className="flex gap-4 mt-6">

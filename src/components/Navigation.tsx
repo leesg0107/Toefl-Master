@@ -11,7 +11,8 @@ import {
   Menu,
   X,
   Home,
-  User
+  User,
+  Crown
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -26,7 +27,7 @@ const navItems = [
 export function Navigation() {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { user, signOut, loading } = useAuth();
+  const { user, signOut, loading, isPremium, profile } = useAuth();
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-[#1e293b]/95 backdrop-blur-sm border-b border-[#334155]">
@@ -68,13 +69,29 @@ export function Navigation() {
 
           {/* Auth Section */}
           <div className="hidden md:flex items-center gap-4">
+            {!isPremium && user && (
+              <Link
+                href="/pricing"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 rounded-lg text-sm transition-colors"
+              >
+                <Crown size={14} />
+                <span>Upgrade</span>
+              </Link>
+            )}
             {loading ? (
               <div className="w-8 h-8 rounded-full bg-gray-600 animate-pulse" />
             ) : user ? (
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-2 text-sm text-gray-400">
-                  <User size={16} />
-                  <span>{user.email?.split("@")[0]}</span>
+                  {isPremium ? (
+                    <span className="flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full text-white text-xs">
+                      <Crown size={12} />
+                      Premium
+                    </span>
+                  ) : (
+                    <User size={16} />
+                  )}
+                  <span>{profile?.name || user.email?.split("@")[0]}</span>
                 </div>
                 <button
                   onClick={() => signOut()}
@@ -130,16 +147,37 @@ export function Navigation() {
             })}
             <div className="border-t border-[#334155] pt-2 mt-2">
               {user ? (
-                <button
-                  onClick={() => {
-                    signOut();
-                    setMobileMenuOpen(false);
-                  }}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-gray-400 hover:text-white"
-                >
-                  <User size={20} />
-                  <span>Sign Out</span>
-                </button>
+                <>
+                  {!isPremium && (
+                    <Link
+                      href="/pricing"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center gap-3 px-4 py-3 text-purple-400"
+                    >
+                      <Crown size={20} />
+                      <span>Upgrade to Premium</span>
+                    </Link>
+                  )}
+                  {isPremium && (
+                    <div className="flex items-center gap-3 px-4 py-3">
+                      <span className="flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full text-white text-xs">
+                        <Crown size={12} />
+                        Premium
+                      </span>
+                      <span className="text-gray-400">{profile?.name || user.email?.split("@")[0]}</span>
+                    </div>
+                  )}
+                  <button
+                    onClick={() => {
+                      signOut();
+                      setMobileMenuOpen(false);
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-gray-400 hover:text-white"
+                  >
+                    <User size={20} />
+                    <span>Sign Out</span>
+                  </button>
+                </>
               ) : (
                 <Link
                   href="/auth"

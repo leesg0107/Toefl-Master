@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { interviewTopics } from "@/data/speaking/interview";
 import { useTextToSpeech, useSpeechRecognition, useTimer } from "@/hooks/useSpeech";
+import { AICoach } from "@/components/AICoach";
 
 export default function InterviewSessionPage() {
   const params = useParams();
@@ -140,6 +141,15 @@ export default function InterviewSessionPage() {
                   </div>
                 </div>
               ))}
+            </div>
+
+            {/* AI Coach Feedback */}
+            <div className="mb-8">
+              <AICoach
+                type="speaking-feedback"
+                content={answers.map((a, i) => `Q${i + 1}: ${topic.questions[i]}\nA: ${a}`).join("\n\n")}
+                context={`Interview Topic: ${topic.title}\nScenario: ${topic.scenario}`}
+              />
             </div>
 
             <div className="flex gap-4 justify-center">
