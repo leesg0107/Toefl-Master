@@ -194,11 +194,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     console.log("[AuthContext] Signing out...");
-    await supabase.auth.signOut();
+
+    // Clear local state first for immediate UI update
     setProfile(null);
     setUser(null);
     setSession(null);
+
+    // Clear auth cookies manually
+    document.cookie.split(";").forEach((c) => {
+      const name = c.split("=")[0].trim();
+      if (name.startsWith("sb-")) {
+        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+      }
+    });
+
+    // Try Supabase signOut without blocking
+    supabase.auth.signOut().catch((err: Error) => {
+      console.error("[AuthContext] Supabase signOut error:", err);
+    });
+
     console.log("[AuthContext] Signed out");
+    window.location.href = "/";
   };
 
   // Check if user has active premium subscription
