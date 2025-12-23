@@ -3,25 +3,15 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import {
-  Mic,
-  PenTool,
-  BookOpen,
-  FileText,
-  Menu,
-  X,
-  Home,
-  User,
-  Crown
-} from "lucide-react";
+import { Menu, X, User, Star } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const navItems = [
-  { href: "/", label: "Home", icon: Home },
-  { href: "/speaking", label: "Speaking", icon: Mic },
-  { href: "/writing", label: "Writing", icon: PenTool },
-  { href: "/voca", label: "Vocabulary", icon: BookOpen },
-  { href: "/study-notes", label: "Study Notes", icon: FileText },
+  { href: "/", label: "Home" },
+  { href: "/speaking", label: "Speaking" },
+  { href: "/writing", label: "Writing" },
+  { href: "/voca", label: "Vocabulary" },
+  { href: "/study-notes", label: "Study Notes" },
 ];
 
 export function Navigation() {
@@ -30,23 +20,22 @@ export function Navigation() {
   const { user, signOut, loading, isPremium, profile } = useAuth();
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-[#1e293b]/95 backdrop-blur-sm border-b border-[#334155]">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-b from-[#004080] to-[#003366] shadow-md">
       <div className="max-w-7xl mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-14">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
-            <span className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
-              TOEFL Master
+            <span className="text-xl font-bold text-white tracking-tight">
+              TOEFL iBT
             </span>
-            <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full">
-              2026
+            <span className="text-xs bg-white/20 text-white px-2 py-0.5 rounded">
+              Practice
             </span>
           </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-1">
             {navItems.map((item) => {
-              const Icon = item.icon;
               const isActive = pathname === item.href ||
                 (item.href !== "/" && pathname.startsWith(item.href));
 
@@ -54,48 +43,44 @@ export function Navigation() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
+                  className={`px-4 py-2 text-sm font-medium transition-all ${
                     isActive
-                      ? "bg-blue-500/20 text-blue-400"
-                      : "text-gray-400 hover:text-white hover:bg-white/5"
+                      ? "bg-white/20 text-white"
+                      : "text-white/80 hover:text-white hover:bg-white/10"
                   }`}
                 >
-                  <Icon size={18} />
-                  <span>{item.label}</span>
+                  {item.label}
                 </Link>
               );
             })}
           </div>
 
           {/* Auth Section */}
-          <div className="hidden md:flex items-center gap-4">
+          <div className="hidden md:flex items-center gap-3">
             {!isPremium && user && (
               <Link
                 href="/pricing"
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 rounded-lg text-sm transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-400 hover:bg-amber-300 text-[#003366] rounded text-xs font-semibold transition-colors"
               >
-                <Crown size={14} />
+                <Star size={12} />
                 <span>Upgrade</span>
               </Link>
             )}
             {loading ? (
-              <div className="w-8 h-8 rounded-full bg-gray-600 animate-pulse" />
+              <div className="w-7 h-7 rounded-full bg-white/20 animate-pulse" />
             ) : user ? (
               <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2 text-sm text-gray-400">
-                  {isPremium ? (
-                    <span className="flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full text-white text-xs">
-                      <Crown size={12} />
+                <div className="flex items-center gap-2 text-sm text-white/90">
+                  {isPremium && (
+                    <span className="premium-badge">
                       Premium
                     </span>
-                  ) : (
-                    <User size={16} />
                   )}
                   <span>{profile?.name || user.email?.split("@")[0]}</span>
                 </div>
                 <button
                   onClick={() => signOut()}
-                  className="text-sm text-gray-400 hover:text-white transition-colors"
+                  className="text-sm text-white/70 hover:text-white transition-colors"
                 >
                   Sign Out
                 </button>
@@ -103,9 +88,9 @@ export function Navigation() {
             ) : (
               <Link
                 href="/auth"
-                className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded-lg transition-colors"
+                className="flex items-center gap-2 px-4 py-1.5 bg-white text-[#003366] rounded text-sm font-semibold hover:bg-gray-100 transition-colors"
               >
-                <User size={18} />
+                <User size={16} />
                 <span>Sign In</span>
               </Link>
             )}
@@ -113,7 +98,7 @@ export function Navigation() {
 
           {/* Mobile Menu Button */}
           <button
-            className="md:hidden p-2 text-gray-400 hover:text-white"
+            className="md:hidden p-2 text-white/80 hover:text-white"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -123,10 +108,9 @@ export function Navigation() {
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-[#1e293b] border-t border-[#334155]">
+        <div className="md:hidden bg-[#003366] border-t border-white/10">
           <div className="px-4 py-2 space-y-1">
             {navItems.map((item) => {
-              const Icon = item.icon;
               const isActive = pathname === item.href;
 
               return (
@@ -134,57 +118,51 @@ export function Navigation() {
                   key={item.href}
                   href={item.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+                  className={`block px-4 py-3 text-sm font-medium transition-all ${
                     isActive
-                      ? "bg-blue-500/20 text-blue-400"
-                      : "text-gray-400 hover:text-white hover:bg-white/5"
+                      ? "bg-white/20 text-white"
+                      : "text-white/80 hover:text-white hover:bg-white/10"
                   }`}
                 >
-                  <Icon size={20} />
-                  <span>{item.label}</span>
+                  {item.label}
                 </Link>
               );
             })}
-            <div className="border-t border-[#334155] pt-2 mt-2">
+            <div className="border-t border-white/10 pt-2 mt-2">
               {user ? (
                 <>
+                  {isPremium && (
+                    <div className="px-4 py-2">
+                      <span className="premium-badge">Premium Member</span>
+                    </div>
+                  )}
                   {!isPremium && (
                     <Link
                       href="/pricing"
                       onClick={() => setMobileMenuOpen(false)}
-                      className="flex items-center gap-3 px-4 py-3 text-purple-400"
+                      className="flex items-center gap-2 px-4 py-3 text-amber-400"
                     >
-                      <Crown size={20} />
+                      <Star size={16} />
                       <span>Upgrade to Premium</span>
                     </Link>
-                  )}
-                  {isPremium && (
-                    <div className="flex items-center gap-3 px-4 py-3">
-                      <span className="flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full text-white text-xs">
-                        <Crown size={12} />
-                        Premium
-                      </span>
-                      <span className="text-gray-400">{profile?.name || user.email?.split("@")[0]}</span>
-                    </div>
                   )}
                   <button
                     onClick={() => {
                       signOut();
                       setMobileMenuOpen(false);
                     }}
-                    className="w-full flex items-center gap-3 px-4 py-3 text-gray-400 hover:text-white"
+                    className="w-full text-left px-4 py-3 text-white/70 hover:text-white"
                   >
-                    <User size={20} />
-                    <span>Sign Out</span>
+                    Sign Out
                   </button>
                 </>
               ) : (
                 <Link
                   href="/auth"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-3 px-4 py-3 text-blue-400"
+                  className="flex items-center gap-2 px-4 py-3 text-white"
                 >
-                  <User size={20} />
+                  <User size={16} />
                   <span>Sign In</span>
                 </Link>
               )}

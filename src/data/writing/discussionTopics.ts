@@ -1,6 +1,7 @@
 export interface DiscussionTopic {
   id: string;
   title: string;
+  courseContext: string;
   professorQuestion: string;
   studentA: {
     name: string;
@@ -11,175 +12,229 @@ export interface DiscussionTopic {
     response: string;
   };
   category: string;
+  isPremium?: boolean;
 }
 
 export const discussionTopics: DiscussionTopic[] = [
+  // FREE TOPICS
   {
     id: "disc-1",
-    title: "Company Social Responsibility",
-    professorQuestion: "In your opinion, what is the best way for a company to have a positive impact on society? You may support one of your classmates' views or present a different perspective.",
+    title: "Mandatory Volunteer Work",
+    courseContext: "Your professor is teaching a class on social studies.",
+    professorQuestion: "Volunteerism refers to the act of offering your time and service without financial compensation to benefit a community, organization, or cause. While many people volunteer mainly to help others, some institutions have mandatory volunteer programs. High schools are one example, where students may be required to complete a certain number of volunteer hours to graduate. What do you think? Should high school students be required to do volunteer work? Why or why not?",
     studentA: {
       name: "Alex",
-      response: "I think companies should focus on creating good jobs with fair wages and benefits. When people have stable employment, they can support their families and contribute to the local economy. This creates a ripple effect that benefits the whole community."
+      response: "Yes, I think high schools should require volunteer hours because it helps students build a sense of civic responsibility. Many teenagers don't naturally think about helping others, and this requirement can introduce them to the idea that their time and effort can make a real difference in the lives of others."
     },
     studentB: {
       name: "Maria",
-      response: "I believe companies should prioritize environmental sustainability. By reducing their carbon footprint and using renewable resources, businesses can help protect the planet for future generations. This is especially important given the climate crisis we're facing."
+      response: "I don't think volunteer hours should be required because many students already have limited free time. Some have part-time jobs or take care of younger siblings after school. Adding a mandatory volunteer requirement could create extra stress and make it harder for those students to balance their existing responsibilities."
     },
-    category: "Business & Society"
+    category: "Social Studies"
   },
   {
     id: "disc-2",
-    title: "Taxing Unhealthy Products",
-    professorQuestion: "Should the government tax unhealthy products, such as sugary drinks and junk food? Share your opinion and explain your reasoning.",
+    title: "Technology in Education",
+    courseContext: "Your professor is teaching a class on educational technology.",
+    professorQuestion: "Many schools are now providing students with tablets or laptops instead of traditional textbooks. Some educators believe this improves learning, while others are concerned about the drawbacks. Do you think schools should replace textbooks with electronic devices? Explain your position.",
     studentA: {
       name: "James",
-      response: "I support taxing unhealthy products because it can discourage consumption and fund public health programs. Countries like Mexico have seen a decrease in sugary drink consumption after implementing such taxes. It's a practical way to address the obesity epidemic."
+      response: "I support using electronic devices in schools because they offer interactive features that textbooks cannot. Students can access videos, simulations, and up-to-date information. Digital devices also reduce the weight of backpacks and save paper, which is better for the environment."
     },
     studentB: {
       name: "Sophie",
-      response: "I disagree with these taxes because they unfairly burden low-income families who often rely on cheaper processed foods. Instead of taxing, the government should invest in making healthy food more accessible and affordable for everyone."
+      response: "I prefer traditional textbooks because electronic devices can be distracting. Students might be tempted to play games or browse social media during class. Also, staring at screens for long periods can cause eye strain and headaches, which could negatively affect learning."
     },
-    category: "Health Policy"
+    category: "Education"
   },
   {
     id: "disc-3",
-    title: "Online vs. Traditional Education",
-    professorQuestion: "Do you think online education can be as effective as traditional classroom learning? Explain your position.",
+    title: "Urban Green Spaces",
+    courseContext: "Your professor is teaching a class on urban planning.",
+    professorQuestion: "For some time now, researchers have been interested in whether green spaces, such as parks, make people who live in cities happier. Some cities are converting vacant lots and unused buildings into parks and gardens. Do you think city governments should prioritize creating more green spaces in urban areas? Why or why not?",
     studentA: {
       name: "Chen",
-      response: "Online education offers flexibility that traditional classrooms cannot match. Students can learn at their own pace, review materials as needed, and access courses from anywhere. This is especially valuable for working adults and those in remote areas."
+      response: "Yes, cities should definitely create more green spaces. Parks give residents places to exercise, relax, and connect with nature. Studies show that access to green spaces reduces stress and improves mental health. In dense urban areas, these spaces are essential for quality of life."
     },
     studentB: {
       name: "Emma",
-      response: "While online learning has benefits, I think traditional classrooms are more effective for most students. The in-person interaction with professors and peers creates a more engaging learning environment and helps develop important social skills."
-    },
-    category: "Education"
-  },
-  {
-    id: "disc-4",
-    title: "Social Media Age Restrictions",
-    professorQuestion: "Should there be stricter age restrictions on social media use? Share your thoughts on this issue.",
-    studentA: {
-      name: "David",
-      response: "Yes, I think stricter age limits are necessary. Young children are particularly vulnerable to cyberbullying, inappropriate content, and the psychological effects of social comparison. Waiting until they're more mature could protect their mental health."
-    },
-    studentB: {
-      name: "Aisha",
-      response: "Instead of stricter age restrictions, I believe we should focus on education. Teaching children about digital literacy and online safety is more practical than trying to enforce age limits, which are easy to bypass anyway."
-    },
-    category: "Technology & Society"
-  },
-  {
-    id: "disc-5",
-    title: "Remote Work Future",
-    professorQuestion: "Do you think remote work will become the standard in the future, or will people return to traditional offices? Explain your view.",
-    studentA: {
-      name: "Michael",
-      response: "I believe remote work will become increasingly common. Companies have realized that many jobs can be done effectively from home, and employees value the flexibility. This trend will likely continue as technology improves."
-    },
-    studentB: {
-      name: "Lisa",
-      response: "While remote work has benefits, I think a hybrid model will become the standard. Some tasks require face-to-face collaboration, and many people miss the social aspects of the office. A balance between remote and in-person work seems most practical."
-    },
-    category: "Work & Career"
-  },
-  {
-    id: "disc-6",
-    title: "Mandatory Volunteering",
-    professorQuestion: "Should schools require students to complete volunteer hours as a graduation requirement? What do you think?",
-    studentA: {
-      name: "Rachel",
-      response: "I support mandatory volunteering because it exposes students to community needs and helps them develop empathy. Many students might not volunteer on their own, but once they start, they often find it rewarding and continue beyond the requirement."
-    },
-    studentB: {
-      name: "Tom",
-      response: "Making volunteering mandatory defeats its purpose. True community service should come from genuine desire to help, not obligation. Forced volunteering can create resentment and doesn't teach the real value of giving back."
-    },
-    category: "Education"
-  },
-  {
-    id: "disc-7",
-    title: "Artificial Intelligence in Healthcare",
-    professorQuestion: "How do you feel about the increasing use of artificial intelligence in healthcare decisions? Is this a positive development?",
-    studentA: {
-      name: "Kevin",
-      response: "AI in healthcare is a positive development because it can analyze vast amounts of data to identify patterns humans might miss. This can lead to earlier and more accurate diagnoses, ultimately saving lives."
-    },
-    studentB: {
-      name: "Natalie",
-      response: "While AI can assist doctors, I'm concerned about over-reliance on technology for healthcare decisions. Medicine involves human factors that AI cannot fully understand. The doctor-patient relationship and human judgment should remain central."
-    },
-    category: "Technology & Health"
-  },
-  {
-    id: "disc-8",
-    title: "Public Transportation vs. Cars",
-    professorQuestion: "Should cities prioritize public transportation over personal vehicles? Share your perspective on urban transportation.",
-    studentA: {
-      name: "Jessica",
-      response: "Cities should definitely prioritize public transportation. It reduces traffic congestion, lowers pollution, and is more accessible to people who cannot afford cars. Investing in efficient public transit benefits everyone."
-    },
-    studentB: {
-      name: "Ryan",
-      response: "While public transportation is important, personal vehicles offer flexibility that many people need. Families with children, people with disabilities, or those working irregular hours often rely on cars. Cities should improve both options."
+      response: "While parks are nice, I think city governments have more pressing priorities. Housing shortages, transportation, and education often need funding more urgently. Creating new parks is expensive, and that money could be used to address problems that affect more residents directly."
     },
     category: "Urban Planning"
   },
   {
-    id: "disc-9",
-    title: "Gap Year Benefits",
-    professorQuestion: "Do you think taking a gap year before university is beneficial? Why or why not?",
+    id: "disc-4",
+    title: "Working While Studying",
+    courseContext: "Your professor is teaching a class on economics and personal finance.",
+    professorQuestion: "Many college students work part-time jobs while pursuing their degrees. Some believe this helps students gain valuable experience, while others argue it distracts from academics. Should college students work while studying? Share your perspective.",
     studentA: {
-      name: "Amanda",
-      response: "A gap year can be very beneficial. It gives students time to mature, explore their interests, and gain real-world experience. Many students who take gap years return to university more focused and motivated."
+      name: "David",
+      response: "I think working part-time is beneficial for college students. It teaches time management, provides income to cover expenses, and offers real-world experience that looks good on a resume. These practical skills are just as important as academic knowledge."
     },
     studentB: {
-      name: "Brian",
-      response: "While gap years work for some, I think they can disrupt academic momentum. Students might find it harder to return to studying, and a year of delay can affect career timelines. Most students are better off starting university directly."
+      name: "Aisha",
+      response: "I believe students should focus on their studies without the added burden of work. College is a short period in life dedicated to learning, and working can take time away from studying, participating in extracurricular activities, and getting enough rest."
+    },
+    category: "Economics"
+  },
+  {
+    id: "disc-5",
+    title: "Social Media Influence",
+    courseContext: "Your professor is teaching a class on media and communication.",
+    professorQuestion: "Social media influencers now have millions of followers and can affect purchasing decisions, political opinions, and lifestyle choices. Some people trust influencers more than traditional media. Do you think social media influencers have too much power in today's society? Explain your reasoning.",
+    studentA: {
+      name: "Michael",
+      response: "I don't think influencers have too much power. People choose to follow them and can unfollow anytime. Influencers often represent diverse voices that traditional media ignores. Their influence is a natural result of connecting with audiences authentically."
+    },
+    studentB: {
+      name: "Lisa",
+      response: "I think influencers do have too much power, especially over young people. Many followers don't realize that influencer content is often sponsored. This hidden advertising can manipulate people into making poor purchasing decisions or developing unrealistic expectations."
+    },
+    category: "Media Studies"
+  },
+  {
+    id: "disc-6",
+    title: "Standardized Testing",
+    courseContext: "Your professor is teaching a class on educational assessment.",
+    professorQuestion: "Standardized tests like the SAT and ACT have long been used for college admissions. Recently, many universities have made these tests optional. Do you think standardized tests should continue to be used for college admissions? Why or why not?",
+    studentA: {
+      name: "Rachel",
+      response: "Standardized tests provide an objective measure to compare students from different schools and backgrounds. Without them, admissions would rely entirely on grades, which vary greatly between schools. Tests help ensure a fair comparison across all applicants."
+    },
+    studentB: {
+      name: "Tom",
+      response: "I think standardized tests should be optional. They favor students who can afford expensive test prep courses and don't measure important qualities like creativity or leadership. A student's full academic record and activities give a better picture of their abilities."
     },
     category: "Education"
   },
+
+  // PREMIUM TOPICS
+  {
+    id: "disc-7",
+    title: "Artificial Intelligence Ethics",
+    courseContext: "Your professor is teaching a class on computer science ethics.",
+    professorQuestion: "Artificial intelligence is increasingly being used to make important decisions, such as who gets a loan, who gets hired, or even who receives medical treatment. Some argue AI makes these decisions more objective, while others worry about bias in algorithms. Should AI be used for important life decisions? What do you think?",
+    studentA: {
+      name: "Kevin",
+      response: "AI can actually reduce human bias in decision-making. Humans have unconscious biases that affect judgments, but well-designed AI systems can evaluate candidates based purely on relevant criteria. With proper oversight, AI can make fairer decisions than humans."
+    },
+    studentB: {
+      name: "Natalie",
+      response: "I'm concerned about using AI for important decisions. AI systems learn from historical data, which often contains existing biases. If the data reflects past discrimination, the AI will perpetuate it. Important decisions about people's lives should involve human judgment."
+    },
+    category: "Technology Ethics",
+    isPremium: true
+  },
+  {
+    id: "disc-8",
+    title: "Remote Work Permanence",
+    courseContext: "Your professor is teaching a class on organizational behavior.",
+    professorQuestion: "Since the pandemic, many companies have allowed employees to work remotely on a permanent basis. Some see this as the future of work, while others believe in-person collaboration is essential. Should companies continue to offer remote work options permanently? Share your view.",
+    studentA: {
+      name: "Jessica",
+      response: "Remote work should definitely continue. It eliminates commute time, reduces office costs, and gives employees flexibility to balance work and personal life. Many studies show remote workers are just as productive, if not more, than office workers."
+    },
+    studentB: {
+      name: "Ryan",
+      response: "While remote work has benefits, I think it weakens company culture and team bonds. Spontaneous conversations and in-person collaboration often lead to better ideas. New employees especially struggle to learn and integrate without being physically present."
+    },
+    category: "Business",
+    isPremium: true
+  },
+  {
+    id: "disc-9",
+    title: "Space Exploration Funding",
+    courseContext: "Your professor is teaching a class on public policy.",
+    professorQuestion: "Governments spend billions of dollars on space exploration programs. Some believe this money could be better spent on solving problems on Earth, such as poverty or climate change. Should governments continue to invest heavily in space exploration? Why or why not?",
+    studentA: {
+      name: "Amanda",
+      response: "Space exploration is essential for humanity's future. It drives technological innovation, inspires young scientists, and could help us find resources or even new places to live. Many everyday technologies we use came from space research."
+    },
+    studentB: {
+      name: "Brian",
+      response: "With so many urgent problems on Earth, spending billions on space seems irresponsible. We have people without clean water, healthcare, or basic education. These immediate needs should be addressed before we focus on exploring other planets."
+    },
+    category: "Public Policy",
+    isPremium: true
+  },
   {
     id: "disc-10",
-    title: "Plastic Ban Effectiveness",
-    professorQuestion: "Are bans on single-use plastics effective in reducing environmental damage? What's your opinion?",
+    title: "Universal Basic Income",
+    courseContext: "Your professor is teaching a class on economics.",
+    professorQuestion: "Universal Basic Income (UBI) is a program where the government gives every adult citizen a regular payment, regardless of employment status. Some see it as a solution to poverty and job automation, while others worry about its costs. Do you think UBI is a good idea? Explain your position.",
     studentA: {
       name: "Diana",
-      response: "Plastic bans are effective because they force both consumers and businesses to adopt alternatives. While inconvenient at first, these bans have significantly reduced plastic waste in cities that have implemented them."
+      response: "UBI could be an effective way to eliminate poverty and give people security to pursue education or start businesses. As automation replaces more jobs, having a guaranteed income could help society transition smoothly."
     },
     studentB: {
       name: "George",
-      response: "Bans alone aren't enough. We need better recycling infrastructure and education about proper disposal. Some plastic alternatives actually have worse environmental impacts when you consider their full lifecycle."
+      response: "UBI sounds good in theory, but it's too expensive to implement. It could also reduce people's motivation to work. Instead of giving everyone money, we should focus on job training programs and creating new employment opportunities."
     },
-    category: "Environment"
+    category: "Economics",
+    isPremium: true
   },
   {
     id: "disc-11",
-    title: "Celebrity Influence",
-    professorQuestion: "Do celebrities have too much influence on young people's decisions and values? Share your thoughts.",
+    title: "Genetic Modification",
+    courseContext: "Your professor is teaching a class on bioethics.",
+    professorQuestion: "New genetic technologies allow scientists to modify genes in human embryos, potentially eliminating hereditary diseases. However, this raises ethical concerns about 'designer babies' and unintended consequences. Should genetic modification of human embryos be allowed? What do you think?",
     studentA: {
       name: "Hannah",
-      response: "Celebrities can have a positive influence by using their platforms to raise awareness about important issues. Many young people have become interested in social causes because of celebrity advocacy."
+      response: "Genetic modification could eliminate terrible diseases like Huntington's or cystic fibrosis. Parents who carry these genes deserve the option to have healthy children. With proper regulation, the technology can be used responsibly for medical purposes only."
     },
     studentB: {
       name: "Ian",
-      response: "I think celebrities have too much influence, especially regarding lifestyle and consumption choices. Young people often try to imitate unrealistic standards, which can affect their self-esteem and financial decisions."
+      response: "I think modifying human genes is too risky. We don't fully understand the long-term effects, and it could create new problems. There's also a risk that only wealthy families will access this technology, creating genetic inequality."
     },
-    category: "Media & Society"
+    category: "Bioethics",
+    isPremium: true
   },
   {
     id: "disc-12",
-    title: "Four-Day Work Week",
-    professorQuestion: "Would a four-day work week be beneficial for employees and companies? What do you think?",
+    title: "Privacy vs. Security",
+    courseContext: "Your professor is teaching a class on civil liberties.",
+    professorQuestion: "Governments increasingly use surveillance technology to monitor citizens, claiming it's necessary for national security. Critics argue this violates privacy rights. Should governments be allowed to conduct widespread surveillance for security purposes? Share your thoughts.",
     studentA: {
       name: "Julia",
-      response: "A four-day work week would greatly benefit employees by improving work-life balance and reducing burnout. Studies have shown that productivity often remains the same or even increases with fewer working days."
+      response: "Security surveillance is necessary in today's world. Terrorist attacks and crimes can be prevented when authorities have access to communication data. Law-abiding citizens have nothing to hide, and the safety benefits outweigh privacy concerns."
     },
     studentB: {
       name: "Mark",
-      response: "While attractive in theory, a four-day week isn't practical for all industries. Healthcare, retail, and service sectors need continuous staffing. Implementing this could create scheduling challenges and increase operational costs."
+      response: "Mass surveillance fundamentally violates our right to privacy. History shows that such powers can be abused by governments. Even if we trust current leaders, we shouldn't create systems that could be misused by future ones."
     },
-    category: "Work & Career"
+    category: "Civil Liberties",
+    isPremium: true
+  },
+  {
+    id: "disc-13",
+    title: "Gig Economy Workers",
+    courseContext: "Your professor is teaching a class on labor economics.",
+    professorQuestion: "Workers in the gig economy, such as rideshare drivers and food delivery couriers, are classified as independent contractors rather than employees. This means they don't receive benefits like health insurance or paid leave. Should gig workers be classified as employees with full benefits? What do you think?",
+    studentA: {
+      name: "Daniel",
+      response: "Gig workers should be classified as employees. They often work full-time hours for these companies and deserve the same protections. Denying them benefits while companies profit is exploitative. It's time to update labor laws for the modern economy."
+    },
+    studentB: {
+      name: "Olivia",
+      response: "The flexibility of gig work is what attracts many workers. They can set their own hours and work for multiple companies. Classifying them as employees would reduce this flexibility and might lead companies to hire fewer workers overall."
+    },
+    category: "Labor Economics",
+    isPremium: true
+  },
+  {
+    id: "disc-14",
+    title: "Academic Grade Inflation",
+    courseContext: "Your professor is teaching a class on higher education.",
+    professorQuestion: "Studies show that average grades at universities have been steadily increasing over the decades, a phenomenon called grade inflation. Some argue this devalues academic achievement, while others see it as reflecting improved learning. Is grade inflation a problem that needs to be addressed? Why or why not?",
+    studentA: {
+      name: "Sarah",
+      response: "Grade inflation is definitely a problem. When everyone gets high grades, it becomes impossible to distinguish excellent students from average ones. This hurts students who truly excel and makes grades meaningless for employers."
+    },
+    studentB: {
+      name: "Nathan",
+      response: "Higher grades might reflect better teaching methods and resources, not inflation. Students today have more access to information and support than before. Instead of worrying about grades, we should focus on whether students are actually learning."
+    },
+    category: "Higher Education",
+    isPremium: true
   }
 ];
