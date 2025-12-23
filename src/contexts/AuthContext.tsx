@@ -37,18 +37,54 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
 
-  const fetchProfile = async (userId: string) => {
-    // For demo purposes, create a mock profile
-    // In production, this would fetch from Supabase
-    const mockProfile: UserProfile = {
-      id: userId,
-      email: user?.email || "",
-      name: user?.user_metadata?.full_name || user?.user_metadata?.name || null,
-      avatar_url: user?.user_metadata?.avatar_url || null,
-      subscription_tier: "free",
-      subscription_expires_at: null,
-    };
-    setProfile(mockProfile);
+  const fetchProfile = async (userId: string, currentUser?: User | null) => {
+    const userToUse = currentUser || user;
+
+    try {
+      // Try to fetch profile from Supabase
+      const { data: profileData, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userId)
+        .single();
+
+      if (error || !profileData) {
+        // If profile doesn't exist, create a default one
+        console.log("Profile not found, using default:", error?.message);
+        const defaultProfile: UserProfile = {
+          id: userId,
+          email: userToUse?.email || "",
+          name: userToUse?.user_metadata?.full_name || userToUse?.user_metadata?.name || null,
+          avatar_url: userToUse?.user_metadata?.avatar_url || null,
+          subscription_tier: "free",
+          subscription_expires_at: null,
+        };
+        setProfile(defaultProfile);
+        return;
+      }
+
+      // Use profile from database
+      setProfile({
+        id: profileData.id,
+        email: profileData.email || userToUse?.email || "",
+        name: profileData.name || userToUse?.user_metadata?.full_name || null,
+        avatar_url: profileData.avatar_url || userToUse?.user_metadata?.avatar_url || null,
+        subscription_tier: profileData.subscription_tier || "free",
+        subscription_expires_at: profileData.subscription_expires_at || null,
+      });
+    } catch (err) {
+      console.error("Error fetching profile:", err);
+      // Fallback to default profile
+      const defaultProfile: UserProfile = {
+        id: userId,
+        email: userToUse?.email || "",
+        name: userToUse?.user_metadata?.full_name || userToUse?.user_metadata?.name || null,
+        avatar_url: userToUse?.user_metadata?.avatar_url || null,
+        subscription_tier: "free",
+        subscription_expires_at: null,
+      };
+      setProfile(defaultProfile);
+    }
   };
 
   const refreshProfile = async () => {
@@ -63,7 +99,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        await fetchProfile(session.user.id);
+        await fetchProfile(session.user.id, session.user);
       }
       setLoading(false);
     };
@@ -75,7 +111,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(session);
         setUser(session?.user ?? null);
         if (session?.user) {
-          await fetchProfile(session.user.id);
+          await fetchProfile(session.user.id, session.user);
         } else {
           setProfile(null);
         }
