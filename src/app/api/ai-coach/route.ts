@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
+import { createClient } from "@supabase/supabase-js";
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY || "",
 });
+
+// Initialize Supabase admin client for server-side auth verification
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 export type CoachingType =
   | "speaking-feedback"
@@ -75,6 +80,38 @@ Be thorough but explain in simple terms.`,
 Make explanations clear and memorable.`,
 };
 
+// Valid coaching types for validation
+const VALID_TYPES = new Set<string>([
+  "speaking-feedback",
+  "writing-feedback",
+  "email-review",
+  "discussion-review",
+  "grammar-check",
+  "vocabulary-help"
+]);
+
+// Rate limiting: simple in-memory store (use Redis in production)
+const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT = 10; // requests per window
+const RATE_WINDOW = 60 * 1000; // 1 minute
+
+function checkRateLimit(userId: string): boolean {
+  const now = Date.now();
+  const record = rateLimitStore.get(userId);
+
+  if (!record || now > record.resetTime) {
+    rateLimitStore.set(userId, { count: 1, resetTime: now + RATE_WINDOW });
+    return true;
+  }
+
+  if (record.count >= RATE_LIMIT) {
+    return false;
+  }
+
+  record.count++;
+  return true;
+}
+
 export async function POST(request: NextRequest) {
   try {
     // Check for API key
@@ -85,9 +122,75 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // === SECURITY: Verify authentication ===
+    const authHeader = request.headers.get("authorization");
+    const cookieHeader = request.headers.get("cookie");
+
+    // Try to get session from Supabase
+    let userId: string | null = null;
+    let isPremium = false;
+
+    if (supabaseUrl && supabaseServiceKey) {
+      const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+      // Get the access token from Authorization header or cookie
+      let accessToken: string | null = null;
+
+      if (authHeader?.startsWith("Bearer ")) {
+        accessToken = authHeader.substring(7);
+      } else if (cookieHeader) {
+        // Parse sb-access-token from cookies
+        const cookies = cookieHeader.split(";").reduce((acc, cookie) => {
+          const [key, value] = cookie.trim().split("=");
+          acc[key] = value;
+          return acc;
+        }, {} as Record<string, string>);
+
+        // Supabase stores tokens in cookies with project-specific names
+        const tokenCookie = Object.keys(cookies).find(k => k.includes("auth-token"));
+        if (tokenCookie) {
+          try {
+            const parsed = JSON.parse(decodeURIComponent(cookies[tokenCookie]));
+            accessToken = parsed.access_token;
+          } catch {
+            // Cookie parsing failed
+          }
+        }
+      }
+
+      if (accessToken) {
+        const { data: { user }, error } = await supabase.auth.getUser(accessToken);
+        if (!error && user) {
+          userId = user.id;
+
+          // Check premium status from database (in production)
+          // For now, we'll check a simple flag or allow all authenticated users
+          // In production: query the profiles table for subscription_tier
+          isPremium = true; // TODO: Replace with actual DB check
+        }
+      }
+    }
+
+    // === SECURITY: Require authentication for AI features ===
+    if (!userId) {
+      return NextResponse.json(
+        { error: "Authentication required. Please sign in to use AI coaching." },
+        { status: 401 }
+      );
+    }
+
+    // === SECURITY: Check rate limit ===
+    if (!checkRateLimit(userId)) {
+      return NextResponse.json(
+        { error: "Rate limit exceeded. Please wait a moment before trying again." },
+        { status: 429 }
+      );
+    }
+
     const body: CoachingRequest = await request.json();
     const { type, content, context } = body;
 
+    // === SECURITY: Validate input ===
     if (!type || !content) {
       return NextResponse.json(
         { error: "Missing required fields: type and content" },
@@ -95,13 +198,33 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const systemPrompt = SYSTEM_PROMPTS[type];
-    if (!systemPrompt) {
+    // Validate coaching type
+    if (!VALID_TYPES.has(type)) {
       return NextResponse.json(
         { error: "Invalid coaching type" },
         { status: 400 }
       );
     }
+
+    // === SECURITY: Limit content length to prevent abuse ===
+    const MAX_CONTENT_LENGTH = 5000;
+    const MAX_CONTEXT_LENGTH = 2000;
+
+    if (content.length > MAX_CONTENT_LENGTH) {
+      return NextResponse.json(
+        { error: `Content too long. Maximum ${MAX_CONTENT_LENGTH} characters allowed.` },
+        { status: 400 }
+      );
+    }
+
+    if (context && context.length > MAX_CONTEXT_LENGTH) {
+      return NextResponse.json(
+        { error: `Context too long. Maximum ${MAX_CONTEXT_LENGTH} characters allowed.` },
+        { status: 400 }
+      );
+    }
+
+    const systemPrompt = SYSTEM_PROMPTS[type];
 
     let userMessage = content;
     if (context) {
