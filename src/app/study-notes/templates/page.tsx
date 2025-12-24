@@ -1,10 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, Mic, PenTool, Copy, Check } from "lucide-react";
+import { ArrowLeft, Mic, PenTool, Copy, Check, Crown, Lock } from "lucide-react";
 import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 
-const speakingTemplates = [
+interface Template {
+  title: string;
+  description: string;
+  template: string;
+  example: string;
+  premium?: boolean;
+}
+
+const speakingTemplates: Template[] = [
   {
     title: "Interview - Opinion Question",
     description: "Use this template when asked for your opinion on a topic",
@@ -58,10 +67,52 @@ First, it saves a lot of time since I don't have to travel to stores.
 Second, I can easily compare prices across different websites.
 
 While traditional shopping has its merits, such as trying products before buying, I still believe online shopping is the better choice for me.`
+  },
+  {
+    title: "Advanced: STAR Method Response",
+    description: "Situation-Task-Action-Result framework for high scores",
+    premium: true,
+    template: `[SITUATION] When I was [context/time], I faced [describe the situation].
+
+[TASK] My goal was to [explain what needed to be done].
+
+[ACTION] To address this, I [describe specific actions you took]. First, I [step 1]. Then, I [step 2].
+
+[RESULT] As a result, [describe the positive outcome]. This experience taught me [lesson learned].`,
+    example: `When I was in my second year of university, I faced a challenging group project where team members weren't communicating effectively.
+
+My goal was to complete the project on time while ensuring everyone contributed equally.
+
+To address this, I organized weekly meetings and created a shared document for tracking progress. First, I spoke individually with each team member. Then, I assigned roles based on everyone's strengths.
+
+As a result, we submitted the project two days early and received the highest grade in our class. This experience taught me the importance of proactive communication.`
+  },
+  {
+    title: "Advanced: Problem-Solution Framework",
+    description: "Structure for discussing challenges and solutions",
+    premium: true,
+    template: `One significant [problem/challenge] that I see is [describe the issue clearly].
+
+This is problematic because [explain why this matters - give impact/consequences].
+
+However, I believe a effective solution would be to [propose solution]. This would work because [explain reasoning].
+
+For example, [provide specific evidence or example of success].
+
+In conclusion, addressing [the problem] through [the solution] could lead to [positive outcome].`,
+    example: `One significant challenge that I see is the rising cost of higher education.
+
+This is problematic because many talented students cannot afford university, which limits social mobility and wastes human potential.
+
+However, I believe an effective solution would be to expand income-based tuition programs. This would work because students pay according to their ability, making education accessible while maintaining university funding.
+
+For example, Australia's HECS system has successfully increased university enrollment among lower-income families.
+
+In conclusion, addressing education costs through income-based programs could lead to a more educated and equitable society.`
   }
 ];
 
-const writingTemplates = [
+const writingTemplates: Template[] = [
   {
     title: "Email - Formal Request",
     description: "Use for requesting something from a professor or official",
@@ -125,109 +176,240 @@ I believe that such taxes unfairly burden low-income families who rely on afford
 Instead of taxation, the government should invest in making healthy food more accessible. In my country, subsidizing fresh produce has been more effective than adding taxes.
 
 Therefore, I think education and accessibility are better solutions than taxation.`
+  },
+  {
+    title: "Advanced: Integrated Response Framework",
+    description: "Perfect score template for discussion posts",
+    premium: true,
+    template: `Building on [classmate 1]'s point about [their idea] and [classmate 2]'s observation regarding [their idea], I would like to offer a synthesis of these perspectives.
+
+I strongly believe that [your clear position].
+
+[Supporting point 1 with specific evidence]. For instance, [concrete example from experience or knowledge].
+
+Moreover, [supporting point 2 that addresses both classmates' ideas]. Research has shown that [add credibility with reference to studies/facts].
+
+While some might argue [potential counterargument], I maintain that [refutation].
+
+Ultimately, [strong concluding statement that ties everything together].`,
+    example: `Building on Sarah's point about online learning flexibility and Tom's observation regarding the importance of peer interaction, I would like to offer a synthesis of these perspectives.
+
+I strongly believe that a hybrid learning model combining both approaches offers the best educational outcomes.
+
+Online components allow students to learn at their own pace and review materials multiple times. For instance, during my experience with online courses, I improved my understanding by rewatching difficult lectures.
+
+Moreover, in-person sessions ensure meaningful collaboration and networking. Research has shown that students in hybrid programs demonstrate 15% higher retention rates than those in purely online courses.
+
+While some might argue that full online education is more cost-effective, I maintain that the social and academic benefits of some face-to-face interaction justify the additional investment.
+
+Ultimately, education should leverage technology while preserving the irreplaceable value of human connection.`
+  },
+  {
+    title: "Advanced: Email with Multiple Requests",
+    description: "Handle complex email scenarios with multiple points",
+    premium: true,
+    template: `Dear [Recipient],
+
+I hope this email finds you well. I am writing regarding [main topic/situation] and would like to address several points.
+
+First, concerning [point 1]: [explanation and request].
+
+Second, regarding [point 2]: [explanation and request].
+
+Finally, I wanted to inquire about [point 3/question].
+
+I understand you have a busy schedule, so please respond at your convenience. If it would be easier, I am also available [suggest alternative communication method].
+
+Thank you for your time and assistance. I truly appreciate your support.
+
+Best regards,
+[Your Name]`,
+    example: `Dear Dr. Peterson,
+
+I hope this email finds you well. I am writing regarding my upcoming graduate school applications and would like to address several points.
+
+First, concerning the letter of recommendation: I would be honored if you could write a letter supporting my application to the Master's program at Stanford. The deadline is December 15th.
+
+Second, regarding my research proposal: I have drafted an initial version and would greatly appreciate your feedback before submission. I have attached it to this email.
+
+Finally, I wanted to inquire about potential research assistant positions in your lab next semester.
+
+I understand you have a busy schedule, so please respond at your convenience. If it would be easier, I am also available to discuss these matters during your office hours.
+
+Thank you for your time and assistance. I truly appreciate your support.
+
+Best regards,
+Emily Chen`
   }
 ];
 
-function TemplateCard({ template, type }: { template: typeof speakingTemplates[0], type: "speaking" | "writing" }) {
+function TemplateCard({ template, isPremium }: { template: Template; isPremium: boolean }) {
   const [copied, setCopied] = useState(false);
   const [showExample, setShowExample] = useState(false);
+  const isLocked = template.premium && !isPremium;
 
   const copyTemplate = () => {
+    if (isLocked) return;
     navigator.clipboard.writeText(template.template);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
   return (
-    <div className="p-6 rounded-xl bg-[#1e293b] border border-[#334155]">
-      <div className="flex items-start justify-between mb-4">
-        <div>
-          <h3 className="text-lg font-semibold text-white">{template.title}</h3>
-          <p className="text-sm text-gray-400">{template.description}</p>
+    <div className={`p-5 rounded-lg border ${isLocked ? "border-amber-200 bg-amber-50/50" : "border-gray-200 bg-white"}`}>
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex-1">
+          <div className="flex items-center gap-2">
+            <h3 className="font-semibold text-gray-900">{template.title}</h3>
+            {template.premium && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-700">
+                <Crown className="w-3 h-3" />
+                Premium
+              </span>
+            )}
+          </div>
+          <p className="text-sm text-gray-500 mt-1">{template.description}</p>
         </div>
         <button
           onClick={copyTemplate}
-          className="flex items-center gap-2 px-3 py-1.5 bg-[#334155] hover:bg-[#475569] rounded-lg text-sm transition-colors"
+          disabled={isLocked}
+          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors ${
+            isLocked
+              ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+              : "bg-gray-100 hover:bg-gray-200 text-gray-600"
+          }`}
         >
-          {copied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
-          {copied ? "Copied!" : "Copy"}
+          {isLocked ? (
+            <>
+              <Lock className="w-4 h-4" />
+              Locked
+            </>
+          ) : copied ? (
+            <>
+              <Check className="w-4 h-4 text-green-600" />
+              Copied!
+            </>
+          ) : (
+            <>
+              <Copy className="w-4 h-4" />
+              Copy
+            </>
+          )}
         </button>
       </div>
 
-      <div className="p-4 rounded-lg bg-[#0f172a] mb-4">
-        <pre className="text-sm text-gray-300 whitespace-pre-wrap font-sans">{template.template}</pre>
-      </div>
-
-      <button
-        onClick={() => setShowExample(!showExample)}
-        className="text-sm text-blue-400 hover:underline"
-      >
-        {showExample ? "Hide example" : "Show example"}
-      </button>
-
-      {showExample && (
-        <div className="mt-4 p-4 rounded-lg bg-blue-500/10 border border-blue-500/30">
-          <p className="text-xs text-blue-400 mb-2">Example:</p>
-          <pre className="text-sm text-gray-300 whitespace-pre-wrap font-sans">{template.example}</pre>
+      {isLocked ? (
+        <div className="p-4 rounded-lg bg-amber-100/50 border border-amber-200 text-center">
+          <Lock className="w-6 h-6 text-amber-600 mx-auto mb-2" />
+          <p className="text-sm text-amber-700 mb-2">Upgrade to Premium to unlock advanced templates</p>
+          <Link
+            href="/pricing"
+            className="inline-flex items-center gap-1 text-sm font-medium text-amber-700 hover:text-amber-800"
+          >
+            View Plans →
+          </Link>
         </div>
+      ) : (
+        <>
+          <div className="p-4 rounded-lg bg-gray-50 border border-gray-100 mb-3">
+            <pre className="text-sm text-gray-700 whitespace-pre-wrap font-sans leading-relaxed">{template.template}</pre>
+          </div>
+
+          <button
+            onClick={() => setShowExample(!showExample)}
+            className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+          >
+            {showExample ? "Hide example ↑" : "Show example ↓"}
+          </button>
+
+          {showExample && (
+            <div className="mt-3 p-4 rounded-lg bg-blue-50 border border-blue-100">
+              <p className="text-xs font-medium text-blue-600 mb-2">Example Response:</p>
+              <pre className="text-sm text-gray-700 whitespace-pre-wrap font-sans leading-relaxed">{template.example}</pre>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
 }
 
 export default function TemplatesPage() {
+  const { isPremium } = useAuth();
+
   return (
-    <div className="min-h-screen py-12 px-4">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-white">
+      <div className="max-w-3xl mx-auto px-6 py-12">
         {/* Header */}
         <div className="mb-8">
           <Link
             href="/study-notes"
-            className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-4"
+            className="inline-flex items-center gap-2 text-gray-400 hover:text-gray-600 text-sm mb-4"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to Study Notes
           </Link>
-          <h1 className="text-3xl font-bold text-white mb-2">High-Score Templates</h1>
-          <p className="text-gray-400">
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">High-Score Templates</h1>
+          <p className="text-gray-500 text-sm">
             Use these proven templates to structure your speaking and writing responses.
           </p>
         </div>
 
-        {/* Speaking Templates */}
-        <section className="mb-12">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 rounded-lg bg-blue-500/20">
-              <Mic className="w-5 h-5 text-blue-400" />
+        {/* Premium Banner */}
+        {!isPremium && (
+          <div className="mb-8 p-4 rounded-lg bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-amber-100">
+                <Crown className="w-5 h-5 text-amber-600" />
+              </div>
+              <div className="flex-1">
+                <p className="font-medium text-gray-900">Unlock Advanced Templates</p>
+                <p className="text-sm text-gray-600">Premium members get access to 5+ advanced high-score templates</p>
+              </div>
+              <Link
+                href="/pricing"
+                className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium rounded-lg transition-colors"
+              >
+                Upgrade
+              </Link>
             </div>
-            <h2 className="text-xl font-semibold text-white">Speaking Templates</h2>
+          </div>
+        )}
+
+        {/* Speaking Templates */}
+        <section className="mb-10">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 rounded-lg bg-blue-100">
+              <Mic className="w-5 h-5 text-blue-600" />
+            </div>
+            <h2 className="text-lg font-semibold text-gray-900">Speaking Templates</h2>
           </div>
           <div className="space-y-4">
             {speakingTemplates.map((template, index) => (
-              <TemplateCard key={index} template={template} type="speaking" />
+              <TemplateCard key={index} template={template} isPremium={isPremium} />
             ))}
           </div>
         </section>
 
         {/* Writing Templates */}
-        <section>
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 rounded-lg bg-purple-500/20">
-              <PenTool className="w-5 h-5 text-purple-400" />
+        <section className="mb-10">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 rounded-lg bg-purple-100">
+              <PenTool className="w-5 h-5 text-purple-600" />
             </div>
-            <h2 className="text-xl font-semibold text-white">Writing Templates</h2>
+            <h2 className="text-lg font-semibold text-gray-900">Writing Templates</h2>
           </div>
           <div className="space-y-4">
             {writingTemplates.map((template, index) => (
-              <TemplateCard key={index} template={template} type="writing" />
+              <TemplateCard key={index} template={template} isPremium={isPremium} />
             ))}
           </div>
         </section>
 
         {/* Tips */}
-        <div className="mt-12 p-6 rounded-xl bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/30">
-          <h3 className="text-lg font-semibold text-green-400 mb-3">Template Tips</h3>
-          <ul className="text-sm text-gray-300 space-y-2">
+        <div className="p-5 rounded-lg bg-green-50 border border-green-200">
+          <h3 className="font-semibold text-green-800 mb-3">Template Tips</h3>
+          <ul className="text-sm text-green-700 space-y-2">
             <li>• Adapt templates to fit the specific question - don&apos;t use them word for word</li>
             <li>• Add personal examples and specific details to make your response unique</li>
             <li>• Practice until templates feel natural, not memorized</li>

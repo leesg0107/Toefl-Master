@@ -228,10 +228,19 @@ export async function POST(request: NextRequest) {
         if (!error && user) {
           userId = user.id;
 
-          // Check premium status from database (in production)
-          // For now, we'll check a simple flag or allow all authenticated users
-          // In production: query the profiles table for subscription_tier
-          isPremium = true; // TODO: Replace with actual DB check
+          // Check premium status from database
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("subscription_tier, subscription_expires_at")
+            .eq("id", user.id)
+            .single();
+
+          if (profile) {
+            const hasActiveSub = profile.subscription_tier === "premium" &&
+              (!profile.subscription_expires_at ||
+               new Date(profile.subscription_expires_at) > new Date());
+            isPremium = hasActiveSub;
+          }
         }
       }
     }
