@@ -61,6 +61,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return;
         }
         console.error("Error fetching profile:", error);
+        // Fallback to default profile on error
+        const defaultProfile: UserProfile = {
+          id: userId,
+          email: userEmail || user?.email || "",
+          name: userMetadata?.full_name || userMetadata?.name || null,
+          avatar_url: userMetadata?.avatar_url || null,
+          subscription_tier: "free",
+          subscription_expires_at: null,
+        };
+        setProfile(defaultProfile);
         return;
       }
 
@@ -74,6 +84,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
     } catch (err) {
       console.error("Error in fetchProfile:", err);
+      // Fallback to default profile on exception
+      const defaultProfile: UserProfile = {
+        id: userId,
+        email: userEmail || user?.email || "",
+        name: userMetadata?.full_name || userMetadata?.name || null,
+        avatar_url: userMetadata?.avatar_url || null,
+        subscription_tier: "free",
+        subscription_expires_at: null,
+      };
+      setProfile(defaultProfile);
     }
   };
 

@@ -49,13 +49,24 @@ const plans = [
 ];
 
 export default function PricingPage() {
-  const { user, isPremium } = useAuth();
+  const { user, isPremium, session } = useAuth();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
   const handleUpgrade = async () => {
+    // Debug logging
+    console.log("handleUpgrade called");
+    console.log("user:", user);
+    console.log("session:", session);
+    console.log("access_token exists:", !!session?.access_token);
+
     if (!user) {
       router.push("/auth?redirect=/pricing");
+      return;
+    }
+
+    if (!session?.access_token) {
+      alert("세션이 만료되었습니다. 페이지를 새로고침 해주세요.");
       return;
     }
 
@@ -64,7 +75,10 @@ export default function PricingPage() {
     try {
       const response = await fetch("/api/lemonsqueezy/checkout", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session.access_token}`,
+        },
       });
 
       const data = await response.json();
