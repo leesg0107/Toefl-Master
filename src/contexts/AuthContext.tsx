@@ -238,8 +238,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   // Check if user has active premium subscription
+  // Premium is active if: tier is "premium" AND (no expiry date OR expiry date is in the future)
   const isPremium = profile?.subscription_tier === "premium" &&
-    (profile?.subscription_expires_at ? new Date(profile.subscription_expires_at) > new Date() : false);
+    (!profile?.subscription_expires_at || new Date(profile.subscription_expires_at) > new Date());
 
   return (
     <AuthContext.Provider value={{

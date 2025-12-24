@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ received: true });
         }
 
-        const { status, ends_at, renews_at } = event.data.attributes;
+        const { status, ends_at, renews_at, customer_id } = event.data.attributes;
         const isActive = status === "active" || status === "on_trial";
 
         // Update user's subscription in the database
@@ -99,6 +99,7 @@ export async function POST(request: NextRequest) {
             subscription_tier: isActive ? "premium" : "free",
             subscription_expires_at: ends_at || renews_at,
             lemon_squeezy_subscription_id: event.data.id,
+            lemon_squeezy_customer_id: customer_id ? String(customer_id) : null,
             updated_at: new Date().toISOString(),
           })
           .eq("id", userId);
