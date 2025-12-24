@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, Mic, PenTool, Star } from "lucide-react";
+import { ArrowLeft, Mic, PenTool, Star, AlertCircle } from "lucide-react";
 
 const speakingRubrics = [
   {
@@ -74,79 +74,94 @@ const writingRubrics = [
   }
 ];
 
+function getScoreColor(index: number) {
+  const colors = [
+    "text-green-600 bg-green-50",
+    "text-blue-600 bg-blue-50",
+    "text-yellow-600 bg-yellow-50",
+    "text-orange-600 bg-orange-50",
+    "text-red-600 bg-red-50"
+  ];
+  return colors[index] || colors[4];
+}
+
 export default function RubricsPage() {
   return (
-    <div className="min-h-screen py-12 px-4">
-      <div className="max-w-5xl mx-auto">
+    <div className="min-h-screen bg-white">
+      <div className="max-w-5xl mx-auto px-6 py-12">
         {/* Header */}
         <div className="mb-8">
           <Link
             href="/study-notes"
-            className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-4"
+            className="inline-flex items-center gap-2 text-gray-400 hover:text-gray-600 text-sm mb-4"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to Study Notes
           </Link>
-          <h1 className="text-3xl font-bold text-white mb-2">Scoring Rubrics</h1>
-          <p className="text-gray-400">
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Scoring Rubrics</h1>
+          <p className="text-gray-500 text-sm">
             Understand how TOEFL responses are scored to improve your performance.
           </p>
         </div>
 
         {/* 2026 Scoring Info */}
-        <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-6 mb-8">
-          <h3 className="text-blue-400 font-semibold mb-2">2026 Scoring Scale</h3>
-          <p className="text-gray-300 text-sm mb-4">
-            Starting January 2026, TOEFL will use a new 1-6 band scale aligned with CEFR levels,
-            in addition to the traditional 0-120 scale.
-          </p>
-          <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
-            {[6, 5, 4, 3, 2, 1].map((score) => (
-              <div key={score} className="text-center p-2 rounded-lg bg-[#1e293b]">
-                <p className="text-lg font-bold text-white">{score}</p>
-                <p className="text-xs text-gray-500">
-                  {score === 6 ? "C2" : score === 5 ? "C1" : score === 4 ? "B2" : score === 3 ? "B1" : score === 2 ? "A2" : "A1"}
-                </p>
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-5 mb-8">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5" />
+            <div>
+              <h3 className="font-semibold text-blue-800 mb-1">2026 Scoring Scale</h3>
+              <p className="text-sm text-blue-700 mb-3">
+                Starting January 2026, TOEFL uses a 1-6 band scale aligned with CEFR levels.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { score: 6, cefr: "C2", label: "Proficient" },
+                  { score: 5, cefr: "C1", label: "Advanced" },
+                  { score: 4, cefr: "B2", label: "Upper-Int" },
+                  { score: 3, cefr: "B1", label: "Intermediate" },
+                  { score: 2, cefr: "A2", label: "Elementary" },
+                  { score: 1, cefr: "A1", label: "Beginner" }
+                ].map((item) => (
+                  <div key={item.score} className="text-center px-3 py-2 rounded-lg bg-white border border-blue-200">
+                    <p className="text-lg font-bold text-gray-900">{item.score}</p>
+                    <p className="text-xs text-blue-600 font-medium">{item.cefr}</p>
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
           </div>
         </div>
 
         {/* Speaking Rubric */}
-        <section className="mb-12">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 rounded-lg bg-blue-500/20">
-              <Mic className="w-5 h-5 text-blue-400" />
+        <section className="mb-10">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 rounded-lg bg-blue-100">
+              <Mic className="w-5 h-5 text-blue-600" />
             </div>
-            <h2 className="text-xl font-semibold text-white">Speaking Scoring Criteria</h2>
+            <h2 className="text-lg font-semibold text-gray-900">Speaking Scoring Criteria</h2>
           </div>
 
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto border border-gray-200 rounded-lg">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-[#334155]">
-                  <th className="text-left p-4 text-gray-400 font-medium">Score</th>
-                  <th className="text-left p-4 text-gray-400 font-medium">Delivery</th>
-                  <th className="text-left p-4 text-gray-400 font-medium">Language Use</th>
-                  <th className="text-left p-4 text-gray-400 font-medium">Topic Development</th>
+                <tr className="bg-gray-50 border-b border-gray-200">
+                  <th className="text-left p-4 text-gray-600 font-medium text-sm">Score</th>
+                  <th className="text-left p-4 text-gray-600 font-medium text-sm">Delivery</th>
+                  <th className="text-left p-4 text-gray-600 font-medium text-sm">Language Use</th>
+                  <th className="text-left p-4 text-gray-600 font-medium text-sm">Topic Development</th>
                 </tr>
               </thead>
               <tbody>
                 {speakingRubrics.map((rubric, index) => (
-                  <tr key={index} className="border-b border-[#334155] hover:bg-[#1e293b]/50">
+                  <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
                     <td className="p-4">
-                      <span className={`font-semibold ${
-                        index === 0 ? "text-green-400" :
-                        index === 1 ? "text-blue-400" :
-                        index === 2 ? "text-yellow-400" :
-                        index === 3 ? "text-orange-400" : "text-red-400"
-                      }`}>
+                      <span className={`inline-block px-2 py-1 rounded text-sm font-semibold ${getScoreColor(index)}`}>
                         {rubric.score}
                       </span>
                     </td>
-                    <td className="p-4 text-sm text-gray-300">{rubric.delivery}</td>
-                    <td className="p-4 text-sm text-gray-300">{rubric.language}</td>
-                    <td className="p-4 text-sm text-gray-300">{rubric.topic}</td>
+                    <td className="p-4 text-sm text-gray-600">{rubric.delivery}</td>
+                    <td className="p-4 text-sm text-gray-600">{rubric.language}</td>
+                    <td className="p-4 text-sm text-gray-600">{rubric.topic}</td>
                   </tr>
                 ))}
               </tbody>
@@ -155,40 +170,35 @@ export default function RubricsPage() {
         </section>
 
         {/* Writing Rubric */}
-        <section className="mb-12">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 rounded-lg bg-purple-500/20">
-              <PenTool className="w-5 h-5 text-purple-400" />
+        <section className="mb-10">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 rounded-lg bg-purple-100">
+              <PenTool className="w-5 h-5 text-purple-600" />
             </div>
-            <h2 className="text-xl font-semibold text-white">Writing Scoring Criteria</h2>
+            <h2 className="text-lg font-semibold text-gray-900">Writing Scoring Criteria</h2>
           </div>
 
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto border border-gray-200 rounded-lg">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-[#334155]">
-                  <th className="text-left p-4 text-gray-400 font-medium">Score</th>
-                  <th className="text-left p-4 text-gray-400 font-medium">Task Response</th>
-                  <th className="text-left p-4 text-gray-400 font-medium">Organization</th>
-                  <th className="text-left p-4 text-gray-400 font-medium">Language</th>
+                <tr className="bg-gray-50 border-b border-gray-200">
+                  <th className="text-left p-4 text-gray-600 font-medium text-sm">Score</th>
+                  <th className="text-left p-4 text-gray-600 font-medium text-sm">Task Response</th>
+                  <th className="text-left p-4 text-gray-600 font-medium text-sm">Organization</th>
+                  <th className="text-left p-4 text-gray-600 font-medium text-sm">Language</th>
                 </tr>
               </thead>
               <tbody>
                 {writingRubrics.map((rubric, index) => (
-                  <tr key={index} className="border-b border-[#334155] hover:bg-[#1e293b]/50">
+                  <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
                     <td className="p-4">
-                      <span className={`font-semibold ${
-                        index === 0 ? "text-green-400" :
-                        index === 1 ? "text-blue-400" :
-                        index === 2 ? "text-yellow-400" :
-                        index === 3 ? "text-orange-400" : "text-red-400"
-                      }`}>
+                      <span className={`inline-block px-2 py-1 rounded text-sm font-semibold ${getScoreColor(index)}`}>
                         {rubric.score}
                       </span>
                     </td>
-                    <td className="p-4 text-sm text-gray-300">{rubric.description}</td>
-                    <td className="p-4 text-sm text-gray-300">{rubric.organization}</td>
-                    <td className="p-4 text-sm text-gray-300">{rubric.language}</td>
+                    <td className="p-4 text-sm text-gray-600">{rubric.description}</td>
+                    <td className="p-4 text-sm text-gray-600">{rubric.organization}</td>
+                    <td className="p-4 text-sm text-gray-600">{rubric.language}</td>
                   </tr>
                 ))}
               </tbody>
@@ -197,32 +207,32 @@ export default function RubricsPage() {
         </section>
 
         {/* Key Tips */}
-        <section className="grid md:grid-cols-2 gap-6">
-          <div className="p-6 rounded-xl bg-[#1e293b] border border-[#334155]">
-            <div className="flex items-center gap-2 mb-4">
-              <Star className="w-5 h-5 text-yellow-400" />
-              <h3 className="text-lg font-semibold text-white">How to Score Higher</h3>
+        <section className="grid md:grid-cols-2 gap-4">
+          <div className="p-5 rounded-lg bg-green-50 border border-green-200">
+            <div className="flex items-center gap-2 mb-3">
+              <Star className="w-5 h-5 text-green-600" />
+              <h3 className="font-semibold text-green-800">How to Score Higher</h3>
             </div>
-            <ul className="text-sm text-gray-300 space-y-2">
-              <li>• <span className="text-white">Be specific</span> - Use concrete examples, not vague statements</li>
-              <li>• <span className="text-white">Stay organized</span> - Use clear transitions between ideas</li>
-              <li>• <span className="text-white">Address all parts</span> - Don&apos;t miss any required elements</li>
-              <li>• <span className="text-white">Use varied vocabulary</span> - Avoid repeating the same words</li>
-              <li>• <span className="text-white">Manage time</span> - Leave time to review your response</li>
+            <ul className="text-sm text-green-700 space-y-2">
+              <li>• <span className="font-medium">Be specific</span> - Use concrete examples, not vague statements</li>
+              <li>• <span className="font-medium">Stay organized</span> - Use clear transitions between ideas</li>
+              <li>• <span className="font-medium">Address all parts</span> - Don&apos;t miss any required elements</li>
+              <li>• <span className="font-medium">Use varied vocabulary</span> - Avoid repeating the same words</li>
+              <li>• <span className="font-medium">Manage time</span> - Leave time to review your response</li>
             </ul>
           </div>
 
-          <div className="p-6 rounded-xl bg-[#1e293b] border border-[#334155]">
-            <div className="flex items-center gap-2 mb-4">
-              <Star className="w-5 h-5 text-red-400" />
-              <h3 className="text-lg font-semibold text-white">Common Mistakes to Avoid</h3>
+          <div className="p-5 rounded-lg bg-red-50 border border-red-200">
+            <div className="flex items-center gap-2 mb-3">
+              <AlertCircle className="w-5 h-5 text-red-600" />
+              <h3 className="font-semibold text-red-800">Common Mistakes to Avoid</h3>
             </div>
-            <ul className="text-sm text-gray-300 space-y-2">
-              <li>• <span className="text-white">Going off-topic</span> - Always address the question asked</li>
-              <li>• <span className="text-white">Being too brief</span> - Develop your ideas fully</li>
-              <li>• <span className="text-white">Memorized responses</span> - Raters can identify these</li>
-              <li>• <span className="text-white">Grammar over content</span> - Ideas matter more than perfection</li>
-              <li>• <span className="text-white">Rushing</span> - Take time to think before responding</li>
+            <ul className="text-sm text-red-700 space-y-2">
+              <li>• <span className="font-medium">Going off-topic</span> - Always address the question asked</li>
+              <li>• <span className="font-medium">Being too brief</span> - Develop your ideas fully</li>
+              <li>• <span className="font-medium">Memorized responses</span> - Raters can identify these</li>
+              <li>• <span className="font-medium">Grammar over content</span> - Ideas matter more than perfection</li>
+              <li>• <span className="font-medium">Rushing</span> - Take time to think before responding</li>
             </ul>
           </div>
         </section>
