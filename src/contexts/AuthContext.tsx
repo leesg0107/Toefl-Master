@@ -37,25 +37,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
 
-  const fetchProfile = async (userId: string, currentUser?: User | null) => {
-    const userToUse = currentUser || user;
-
+  const fetchProfile = async (userId: string, userEmail?: string, userMetadata?: Record<string, string>) => {
     try {
-      // Try to fetch profile from Supabase
-      const { data: profileData, error } = await supabase
+      // Fetch profile from Supabase database
+      const { data, error } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", userId)
         .single();
 
-      if (error || !profileData) {
-        // If profile doesn't exist, create a default one
-        console.log("Profile not found, using default:", error?.message);
+      if (error) {
+        // If profile doesn't exist (new user), create one with defaults
+        if (error.code === "PGRST116") {
+          const newProfile: UserProfile = {
+            id: userId,
+            email: userEmail || user?.email || "",
+            name: userMetadata?.full_name || userMetadata?.name || user?.user_metadata?.full_name || null,
+            avatar_url: userMetadata?.avatar_url || user?.user_metadata?.avatar_url || null,
+            subscription_tier: "free",
+            subscription_expires_at: null,
+          };
+          setProfile(newProfile);
+          return;
+        }
+        console.error("Error fetching profile:", error);
+        // Fallback to default profile on error
         const defaultProfile: UserProfile = {
           id: userId,
-          email: userToUse?.email || "",
-          name: userToUse?.user_metadata?.full_name || userToUse?.user_metadata?.name || null,
-          avatar_url: userToUse?.user_metadata?.avatar_url || null,
+          email: userEmail || user?.email || "",
+          name: userMetadata?.full_name || userMetadata?.name || null,
+          avatar_url: userMetadata?.avatar_url || null,
           subscription_tier: "free",
           subscription_expires_at: null,
         };
@@ -63,23 +74,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      // Use profile from database
       setProfile({
-        id: profileData.id,
-        email: profileData.email || userToUse?.email || "",
-        name: profileData.name || userToUse?.user_metadata?.full_name || null,
-        avatar_url: profileData.avatar_url || userToUse?.user_metadata?.avatar_url || null,
-        subscription_tier: profileData.subscription_tier || "free",
-        subscription_expires_at: profileData.subscription_expires_at || null,
+        id: data.id,
+        email: data.email,
+        name: data.name,
+        avatar_url: data.avatar_url,
+        subscription_tier: data.subscription_tier || "free",
+        subscription_expires_at: data.subscription_expires_at,
       });
     } catch (err) {
-      console.error("Error fetching profile:", err);
-      // Fallback to default profile
+      console.error("Error in fetchProfile:", err);
+      // Fallback to default profile on exception
       const defaultProfile: UserProfile = {
         id: userId,
-        email: userToUse?.email || "",
-        name: userToUse?.user_metadata?.full_name || userToUse?.user_metadata?.name || null,
-        avatar_url: userToUse?.user_metadata?.avatar_url || null,
+        email: userEmail || user?.email || "",
+        name: userMetadata?.full_name || userMetadata?.name || null,
+        avatar_url: userMetadata?.avatar_url || null,
         subscription_tier: "free",
         subscription_expires_at: null,
       };
@@ -94,24 +104,71 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    const getSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        await fetchProfile(session.user.id, session.user);
+    let isSubscribed = true;
+
+    const initAuth = async () => {
+      console.log("[AuthContext] Initializing auth...");
+
+      // Set a timeout to prevent infinite loading
+      const timeoutId = setTimeout(() => {
+        if (isSubscribed && loading) {
+          console.log("[AuthContext] Timeout reached, setting loading to false");
+          setLoading(false);
+        }
+      }, 3000);
+
+      try {
+        console.log("[AuthContext] Calling getSession...");
+        const { data, error } = await supabase.auth.getSession();
+        console.log("[AuthContext] getSession returned - data:", !!data, "error:", error?.message);
+
+        const currentSession = data?.session;
+        console.log("[AuthContext] getSession result - session:", !!currentSession);
+
+        if (!isSubscribed) {
+          clearTimeout(timeoutId);
+          return;
+        }
+
+        if (currentSession?.user) {
+          console.log("[AuthContext] Session found with user:", currentSession.user.email);
+          setSession(currentSession);
+          setUser(currentSession.user);
+          setLoading(false);
+
+          await fetchProfile(
+            currentSession.user.id,
+            currentSession.user.email,
+            currentSession.user.user_metadata as Record<string, string>
+          );
+        } else {
+          console.log("[AuthContext] No session found");
+          setUser(null);
+          setSession(null);
+          setLoading(false);
+        }
+
+        clearTimeout(timeoutId);
+      } catch (err) {
+        console.error("[AuthContext] Error during init:", err);
+        if (isSubscribed) setLoading(false);
       }
-      setLoading(false);
+      console.log("[AuthContext] Init complete");
     };
 
-    getSession();
+    initAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        if (session?.user) {
-          await fetchProfile(session.user.id, session.user);
+      async (_event: string, newSession: Session | null) => {
+        console.log("[AuthContext] Auth state changed:", _event);
+        setSession(newSession);
+        setUser(newSession?.user ?? null);
+        if (newSession?.user) {
+          await fetchProfile(
+            newSession.user.id,
+            newSession.user.email,
+            newSession.user.user_metadata as Record<string, string>
+          );
         } else {
           setProfile(null);
         }
@@ -119,16 +176,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     );
 
-    return () => subscription.unsubscribe();
-  }, [supabase.auth]);
+    return () => {
+      isSubscribed = false;
+      subscription.unsubscribe();
+    };
+  }, []);
 
   const signInWithGoogle = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
+    const redirectUrl = `${window.location.origin}/auth/callback`;
+    console.log("Attempting Google OAuth with redirectTo:", redirectUrl);
+
+    const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: redirectUrl,
       },
     });
+
+    console.log("OAuth response - data:", data, "error:", error);
+
+    if (error) {
+      console.error("Google OAuth error:", error);
+    }
+
     return { error: error as Error | null };
   };
 
@@ -143,8 +213,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    console.log("[AuthContext] Signing out...");
+
+    // Clear local state first for immediate UI update
     setProfile(null);
+    setUser(null);
+    setSession(null);
+
+    // Clear auth cookies manually
+    document.cookie.split(";").forEach((c) => {
+      const name = c.split("=")[0].trim();
+      if (name.startsWith("sb-")) {
+        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+      }
+    });
+
+    // Try Supabase signOut without blocking
+    supabase.auth.signOut().catch((err: Error) => {
+      console.error("[AuthContext] Supabase signOut error:", err);
+    });
+
+    console.log("[AuthContext] Signed out");
+    window.location.href = "/";
   };
 
   // Check if user has active premium subscription
