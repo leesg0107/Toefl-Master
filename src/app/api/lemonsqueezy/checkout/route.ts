@@ -62,14 +62,63 @@ export async function POST(request: NextRequest) {
 
     // Check if Lemon Squeezy is configured
     if (!LEMONSQUEEZY_API_KEY || !LEMONSQUEEZY_STORE_ID || !LEMONSQUEEZY_VARIANT_ID) {
+      console.error("Missing Lemon Squeezy config:", {
+        apiKey: !!LEMONSQUEEZY_API_KEY,
+        storeId: LEMONSQUEEZY_STORE_ID,
+        variantId: LEMONSQUEEZY_VARIANT_ID,
+      });
       return NextResponse.json({
         message: "Payment system not configured. Please add Lemon Squeezy environment variables.",
         demo: true,
       });
     }
 
+    console.log("Lemon Squeezy config:", {
+      storeId: LEMONSQUEEZY_STORE_ID,
+      variantId: LEMONSQUEEZY_VARIANT_ID,
+    });
+
     // Get redirect URL
-    const origin = request.headers.get("origin") || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const origin = request.headers.get("origin") || process.env.NEXT_PUBLIC_APP_URL || "https://toeflmaster.org";
+
+    const requestBody = {
+      data: {
+        type: "checkouts",
+        attributes: {
+          checkout_options: {
+            embed: false,
+            media: false,
+            button_color: "#111827",
+          },
+          checkout_data: {
+            email: userEmail,
+            custom: {
+              user_id: userId,
+            },
+          },
+          product_options: {
+            redirect_url: `${origin}/pricing?success=true`,
+            receipt_thank_you_note: "Thank you for subscribing to TOEFL Master Premium!",
+          },
+        },
+        relationships: {
+          store: {
+            data: {
+              type: "stores",
+              id: String(LEMONSQUEEZY_STORE_ID),
+            },
+          },
+          variant: {
+            data: {
+              type: "variants",
+              id: String(LEMONSQUEEZY_VARIANT_ID),
+            },
+          },
+        },
+      },
+    };
+
+    console.log("Lemon Squeezy request body:", JSON.stringify(requestBody, null, 2));
 
     // Create Lemon Squeezy checkout session
     const response = await fetch("https://api.lemonsqueezy.com/v1/checkouts", {
@@ -79,49 +128,17 @@ export async function POST(request: NextRequest) {
         "Content-Type": "application/vnd.api+json",
         "Authorization": `Bearer ${LEMONSQUEEZY_API_KEY}`,
       },
-      body: JSON.stringify({
-        data: {
-          type: "checkouts",
-          attributes: {
-            checkout_options: {
-              embed: false,
-              media: false,
-              button_color: "#111827",
-            },
-            checkout_data: {
-              email: userEmail,
-              custom: {
-                user_id: userId,
-              },
-            },
-            product_options: {
-              redirect_url: `${origin}/pricing?success=true`,
-              receipt_thank_you_note: "Thank you for subscribing to TOEFL Master Premium!",
-            },
-          },
-          relationships: {
-            store: {
-              data: {
-                type: "stores",
-                id: LEMONSQUEEZY_STORE_ID,
-              },
-            },
-            variant: {
-              data: {
-                type: "variants",
-                id: LEMONSQUEEZY_VARIANT_ID,
-              },
-            },
-          },
-        },
-      }),
+      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {
       const errorData = await response.json();
-      console.error("Lemon Squeezy error:", errorData);
+      console.error("Lemon Squeezy error response:", JSON.stringify(errorData, null, 2));
+
+      // Extract error message for user
+      const errorMessage = errorData.errors?.[0]?.detail || "Failed to create checkout session";
       return NextResponse.json(
-        { error: "Failed to create checkout session" },
+        { error: errorMessage },
         { status: 500 }
       );
     }
