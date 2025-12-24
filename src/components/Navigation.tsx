@@ -67,20 +67,28 @@ export function Navigation() {
               <div className="w-7 h-7 rounded-full bg-gray-100 animate-pulse" />
             ) : user ? (
               <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2 text-sm text-gray-600">
+                <Link
+                  href="/profile"
+                  className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                >
                   {isPremium && (
                     <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-medium rounded">
                       Premium
                     </span>
                   )}
+                  {user.user_metadata?.avatar_url ? (
+                    <img
+                      src={user.user_metadata.avatar_url}
+                      alt="Profile"
+                      className="w-6 h-6 rounded-full"
+                    />
+                  ) : (
+                    <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center">
+                      <User size={14} className="text-gray-500" />
+                    </div>
+                  )}
                   <span>{profile?.name || user.email?.split("@")[0]}</span>
-                </div>
-                <button
-                  onClick={() => signOut()}
-                  className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                  Sign Out
-                </button>
+                </Link>
               </div>
             ) : (
               <Link
@@ -128,13 +136,31 @@ export function Navigation() {
             <div className="border-t border-gray-100 pt-2 mt-2">
               {user ? (
                 <>
-                  {isPremium && (
-                    <div className="px-4 py-2">
-                      <span className="px-2 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded">
-                        Premium Member
-                      </span>
+                  <Link
+                    href="/profile"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-3 px-4 py-3"
+                  >
+                    {user.user_metadata?.avatar_url ? (
+                      <img
+                        src={user.user_metadata.avatar_url}
+                        alt="Profile"
+                        className="w-8 h-8 rounded-full"
+                      />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                        <User size={16} className="text-gray-500" />
+                      </div>
+                    )}
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">
+                        {profile?.name || user.email?.split("@")[0]}
+                      </p>
+                      {isPremium && (
+                        <span className="text-xs text-amber-600">Premium</span>
+                      )}
                     </div>
-                  )}
+                  </Link>
                   {!isPremium && (
                     <Link
                       href="/pricing"
