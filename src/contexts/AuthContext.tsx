@@ -38,6 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const supabase = createClient();
 
   const fetchProfile = async (userId: string, userEmail?: string, userMetadata?: Record<string, string>) => {
+    console.log("[AuthContext] fetchProfile called for userId:", userId);
     try {
       // Fetch profile from Supabase database
       const { data, error } = await supabase
@@ -46,9 +47,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .eq("id", userId)
         .single();
 
+      console.log("[AuthContext] Profile fetch result - data:", data, "error:", error);
+
       if (error) {
         // If profile doesn't exist (new user), create one with defaults
         if (error.code === "PGRST116") {
+          console.log("[AuthContext] Profile not found, creating default (free)");
           const newProfile: UserProfile = {
             id: userId,
             email: userEmail || user?.email || "",
@@ -60,7 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setProfile(newProfile);
           return;
         }
-        console.error("Error fetching profile:", error);
+        console.error("[AuthContext] Error fetching profile:", error);
         // Fallback to default profile on error
         const defaultProfile: UserProfile = {
           id: userId,
@@ -74,6 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
 
+      console.log("[AuthContext] Profile loaded - subscription_tier:", data.subscription_tier);
       setProfile({
         id: data.id,
         email: data.email,
@@ -83,7 +88,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         subscription_expires_at: data.subscription_expires_at,
       });
     } catch (err) {
-      console.error("Error in fetchProfile:", err);
+      console.error("[AuthContext] Exception in fetchProfile:", err);
       // Fallback to default profile on exception
       const defaultProfile: UserProfile = {
         id: userId,
@@ -160,16 +165,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event: string, newSession: Session | null) => {
-        console.log("[AuthContext] Auth state changed:", _event);
+        console.log("[AuthContext] Auth state changed:", _event, "session exists:", !!newSession, "user exists:", !!newSession?.user);
         setSession(newSession);
         setUser(newSession?.user ?? null);
         if (newSession?.user) {
-          await fetchProfile(
-            newSession.user.id,
-            newSession.user.email,
-            newSession.user.user_metadata as Record<string, string>
-          );
+          console.log("[AuthContext] Calling fetchProfile for user:", newSession.user.id);
+          try {
+            await fetchProfile(
+              newSession.user.id,
+              newSession.user.email,
+              newSession.user.user_metadata as Record<string, string>
+            );
+            console.log("[AuthContext] fetchProfile completed successfully");
+          } catch (err) {
+            console.error("[AuthContext] fetchProfile threw error:", err);
+          }
         } else {
+          console.log("[AuthContext] No user in session");
           setProfile(null);
         }
         setLoading(false);
