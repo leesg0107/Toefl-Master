@@ -40,44 +40,51 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const fetchProfile = async (userId: string, userEmail?: string, userMetadata?: Record<string, string>) => {
     console.log("[AuthContext] fetchProfile called for userId:", userId);
     try {
-      // Fetch profile from Supabase database
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", userId)
-        .single();
+      // Use direct fetch to bypass any Supabase client issues
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-      console.log("[AuthContext] Profile fetch result - data:", data, "error:", error);
+      if (!supabaseUrl || !supabaseAnonKey) {
+        console.error("[AuthContext] Missing Supabase config");
+        throw new Error("Missing Supabase config");
+      }
 
-      if (error) {
-        // If profile doesn't exist (new user), create one with defaults
-        if (error.code === "PGRST116") {
-          console.log("[AuthContext] Profile not found, creating default (free)");
-          const newProfile: UserProfile = {
-            id: userId,
-            email: userEmail || user?.email || "",
-            name: userMetadata?.full_name || userMetadata?.name || user?.user_metadata?.full_name || null,
-            avatar_url: userMetadata?.avatar_url || user?.user_metadata?.avatar_url || null,
-            subscription_tier: "free",
-            subscription_expires_at: null,
-          };
-          setProfile(newProfile);
-          return;
+      console.log("[AuthContext] Fetching profile via REST API...");
+      const response = await fetch(
+        `${supabaseUrl}/rest/v1/profiles?id=eq.${userId}&select=*`,
+        {
+          headers: {
+            "apikey": supabaseAnonKey,
+            "Authorization": `Bearer ${supabaseAnonKey}`,
+            "Content-Type": "application/json",
+          },
         }
-        console.error("[AuthContext] Error fetching profile:", error);
-        // Fallback to default profile on error
-        const defaultProfile: UserProfile = {
+      );
+
+      console.log("[AuthContext] REST API response status:", response.status);
+
+      if (!response.ok) {
+        throw new Error(`HTTP error: ${response.status}`);
+      }
+
+      const profiles = await response.json();
+      console.log("[AuthContext] REST API response data:", profiles);
+
+      if (!profiles || profiles.length === 0) {
+        console.log("[AuthContext] Profile not found, creating default (free)");
+        const newProfile: UserProfile = {
           id: userId,
           email: userEmail || user?.email || "",
-          name: userMetadata?.full_name || userMetadata?.name || null,
-          avatar_url: userMetadata?.avatar_url || null,
+          name: userMetadata?.full_name || userMetadata?.name || user?.user_metadata?.full_name || null,
+          avatar_url: userMetadata?.avatar_url || user?.user_metadata?.avatar_url || null,
           subscription_tier: "free",
           subscription_expires_at: null,
         };
-        setProfile(defaultProfile);
+        setProfile(newProfile);
         return;
       }
 
+      const data = profiles[0];
       console.log("[AuthContext] Profile loaded - subscription_tier:", data.subscription_tier);
       setProfile({
         id: data.id,
