@@ -306,7 +306,7 @@ export async function POST(request: NextRequest) {
     }
 
     const message = await anthropic.messages.create({
-      model: "claude-sonnet-4-20250514",
+      model: "claude-3-5-sonnet-20241022",
       max_tokens: 2048,
       system: systemPrompt,
       messages: [
@@ -331,8 +331,23 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error("AI Coach error:", error);
+
+    // Provide more specific error messages
+    let errorMessage = "Failed to get AI feedback. Please try again.";
+
+    if (error instanceof Error) {
+      if (error.message.includes("API key")) {
+        errorMessage = "Invalid API key configuration. Please contact support.";
+      } else if (error.message.includes("rate")) {
+        errorMessage = "AI service rate limit reached. Please try again in a moment.";
+      } else if (error.message.includes("model")) {
+        errorMessage = "AI model configuration error. Please contact support.";
+      }
+      console.error("Error details:", error.message);
+    }
+
     return NextResponse.json(
-      { error: "Failed to get AI feedback. Please try again." },
+      { error: errorMessage },
       { status: 500 }
     );
   }
