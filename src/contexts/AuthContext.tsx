@@ -165,16 +165,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event: string, newSession: Session | null) => {
-        console.log("[AuthContext] Auth state changed:", _event);
+        console.log("[AuthContext] Auth state changed:", _event, "session exists:", !!newSession, "user exists:", !!newSession?.user);
         setSession(newSession);
         setUser(newSession?.user ?? null);
         if (newSession?.user) {
-          await fetchProfile(
-            newSession.user.id,
-            newSession.user.email,
-            newSession.user.user_metadata as Record<string, string>
-          );
+          console.log("[AuthContext] Calling fetchProfile for user:", newSession.user.id);
+          try {
+            await fetchProfile(
+              newSession.user.id,
+              newSession.user.email,
+              newSession.user.user_metadata as Record<string, string>
+            );
+            console.log("[AuthContext] fetchProfile completed successfully");
+          } catch (err) {
+            console.error("[AuthContext] fetchProfile threw error:", err);
+          }
         } else {
+          console.log("[AuthContext] No user in session");
           setProfile(null);
         }
         setLoading(false);
