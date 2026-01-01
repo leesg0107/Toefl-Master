@@ -37,6 +37,7 @@ export default function ProfilePage() {
   // Fetch subscription details when user is premium
   useEffect(() => {
     const fetchSubscriptionDetails = async () => {
+      console.log("[Profile] fetchSubscriptionDetails called - isPremium:", isPremium, "hasToken:", !!session?.access_token);
       if (!isPremium || !session?.access_token) return;
 
       setLoadingDetails(true);
@@ -48,8 +49,10 @@ export default function ProfilePage() {
           },
         });
 
+        console.log("[Profile] API response status:", response.status);
         if (response.ok) {
           const data = await response.json();
+          console.log("[Profile] Setting subscriptionDetails:", data);
           setSubscriptionDetails(data);
         }
       } catch (error) {
@@ -98,9 +101,12 @@ export default function ProfilePage() {
   };
 
   const handleManageSubscription = () => {
+    console.log("[Profile] handleManageSubscription - subscriptionDetails:", subscriptionDetails);
+    console.log("[Profile] customerPortal URL:", subscriptionDetails?.urls?.customerPortal);
     if (subscriptionDetails?.urls?.customerPortal) {
       window.open(subscriptionDetails.urls.customerPortal, "_blank");
     } else {
+      console.log("[Profile] Using fallback URL");
       window.open("https://app.lemonsqueezy.com/my-orders", "_blank");
     }
   };
