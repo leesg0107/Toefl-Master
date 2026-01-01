@@ -123,7 +123,7 @@ function FeedbackSection({
 }
 
 export function AICoach({ type, content, context, onClose }: AICoachProps) {
-  const { user, isPremium } = useAuth();
+  const { user, isPremium, session } = useAuth();
   const [feedback, setFeedback] = useState<string | null>(null);
   const [parsedFeedback, setParsedFeedback] = useState<ParsedFeedback | null>(null);
   const [loading, setLoading] = useState(false);
@@ -140,9 +140,18 @@ export function AICoach({ type, content, context, onClose }: AICoachProps) {
     setError(null);
 
     try {
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+
+      // Add auth token if session exists
+      if (session?.access_token) {
+        headers["Authorization"] = `Bearer ${session.access_token}`;
+      }
+
       const response = await fetch("/api/ai-coach", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({ type, content, context }),
       });
 
