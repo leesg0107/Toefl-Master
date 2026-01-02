@@ -343,21 +343,28 @@ export async function POST(request: NextRequest) {
       },
     });
 
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("AI Coach error:", error);
 
-    // Provide more specific error messages
+    // Log full error details for debugging
+    const errorObj = error as { status?: number; message?: string; error?: { type?: string; message?: string } };
+    console.error("Full error object:", JSON.stringify(errorObj, null, 2));
+
     let errorMessage = "Failed to get AI feedback. Please try again.";
 
-    if (error instanceof Error) {
-      if (error.message.includes("API key")) {
-        errorMessage = "Invalid API key configuration. Please contact support.";
-      } else if (error.message.includes("rate")) {
-        errorMessage = "AI service rate limit reached. Please try again in a moment.";
-      } else if (error.message.includes("model")) {
-        errorMessage = "AI model configuration error. Please contact support.";
+    // Check for Anthropic API errors
+    if (errorObj.error?.message) {
+      console.error("Anthropic error message:", errorObj.error.message);
+      errorMessage = `API Error: ${errorObj.error.message}`;
+    } else if (errorObj.message) {
+      console.error("Error message:", errorObj.message);
+      if (errorObj.message.includes("API key") || errorObj.message.includes("authentication")) {
+        errorMessage = "Invalid API key. Please check your ANTHROPIC_API_KEY.";
+      } else if (errorObj.message.includes("rate")) {
+        errorMessage = "Rate limit exceeded. Please try again in a moment.";
+      } else {
+        errorMessage = errorObj.message;
       }
-      console.error("Error details:", error.message);
     }
 
     return NextResponse.json(
