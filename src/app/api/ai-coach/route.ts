@@ -313,12 +313,12 @@ export async function POST(request: NextRequest) {
       userMessage = `Context: ${context}\n\nStudent's response:\n${content}`;
     }
 
-    console.log("[AI Coach] Calling Anthropic API with model: claude-3-5-sonnet-20241022");
+    console.log("[AI Coach] Calling Anthropic API with model: claude-3-5-sonnet-20240620");
     console.log("[AI Coach] Content length:", userMessage.length);
 
     const anthropic = getAnthropicClient();
     const message = await anthropic.messages.create({
-      model: "claude-3-5-sonnet-20241022",
+      model: "claude-3-5-sonnet-20240620",
       max_tokens: 2048,
       system: systemPrompt,
       messages: [
