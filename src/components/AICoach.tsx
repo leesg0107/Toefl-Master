@@ -19,8 +19,17 @@ interface ParsedFeedback {
   strengths: string[];
   improvements: string[];
   suggestions: string[];
+  corrections: GrammarCorrection[];
   correctedVersion?: string;
   rawFeedback: string;
+}
+
+interface GrammarCorrection {
+  category: string;
+  wrong: string;
+  correct: string;
+  explanation: string;
+  relatedVocab: string[];
 }
 
 function parseFeedback(feedback: string): ParsedFeedback {
@@ -28,6 +37,7 @@ function parseFeedback(feedback: string): ParsedFeedback {
     strengths: [],
     improvements: [],
     suggestions: [],
+    corrections: [],
     rawFeedback: feedback,
   };
 
@@ -39,23 +49,37 @@ function parseFeedback(feedback: string): ParsedFeedback {
     result.score = `${score}/${maxScore}`;
   }
 
-  // Extract sections by common headers
-  const sections = feedback.split(/\n(?=\d+\.|#{1,3}\s|\*\*[^*]+\*\*:?|\b(?:Strengths?|Weakness|Areas? for Improvement|Suggestions?|Feedback|Grammar|Vocabulary|Content|Organization|Corrected|Revised))/i);
+  // Extract grammar corrections with ❌/✅ format
+  const correctionPattern = /(\d+)\.\s*\[?([^\]❌\n]+)\]?\s*\n?\s*❌\s*["""]?([^"""\n✅]+)["""]?\s*\n?\s*✅\s*["""]?([^"""\n📝]+)["""]?\s*\n?\s*📝\s*(?:Explanation:?)?\s*([^\n📚]+)\s*\n?\s*(?:📚\s*(?:Related[^:]*:?)?\s*([^\n]+))?/gi;
+
+  let match;
+  while ((match = correctionPattern.exec(feedback)) !== null) {
+    result.corrections.push({
+      category: match[2]?.trim() || "Grammar",
+      wrong: match[3]?.trim().replace(/^[""]|[""]$/g, '') || "",
+      correct: match[4]?.trim().replace(/^[""]|[""]$/g, '') || "",
+      explanation: match[5]?.trim() || "",
+      relatedVocab: match[6] ? match[6].split(/[,;]/).map(v => v.trim()).filter(v => v) : [],
+    });
+  }
+
+  // Extract sections by headers
+  const sections = feedback.split(/\n(?=\*\*[^*]+\*\*)/);
 
   sections.forEach(section => {
     const lowerSection = section.toLowerCase();
-    const bullets = section.match(/[-•*]\s+.+/g) || [];
+    const bullets = section.match(/[-•*]\s+[^\n]+/g) || [];
     const cleanBullets = bullets.map(b => b.replace(/^[-•*]\s+/, '').trim()).filter(b => b.length > 0);
 
-    if (lowerSection.includes('strength') || lowerSection.includes('well') || lowerSection.includes('good')) {
+    if (lowerSection.includes('strength')) {
       result.strengths.push(...cleanBullets);
-    } else if (lowerSection.includes('improve') || lowerSection.includes('weakness') || lowerSection.includes('error') || lowerSection.includes('issue')) {
+    } else if (lowerSection.includes('areas for improvement') || lowerSection.includes('areas to improve')) {
       result.improvements.push(...cleanBullets);
-    } else if (lowerSection.includes('suggest') || lowerSection.includes('recommend') || lowerSection.includes('tip')) {
+    } else if (lowerSection.includes('suggestion')) {
       result.suggestions.push(...cleanBullets);
-    } else if (lowerSection.includes('correct') || lowerSection.includes('revised')) {
-      // Extract corrected version
-      const corrected = section.replace(/^.*?(?:corrected|revised)[^:]*:/i, '').trim();
+    } else if (lowerSection.includes('improved version') || lowerSection.includes('corrected version')) {
+      // Extract corrected version - everything after the header
+      const corrected = section.replace(/^\*\*[^*]+\*\*:?\s*/i, '').trim();
       if (corrected.length > 20) {
         result.correctedVersion = corrected;
       }
@@ -119,6 +143,50 @@ function FeedbackSection({
           </li>
         ))}
       </ul>
+    </div>
+  );
+}
+
+function GrammarCorrectionsSection({ corrections }: { corrections: GrammarCorrection[] }) {
+  if (corrections.length === 0) return null;
+
+  return (
+    <div className="p-4 rounded-lg border border-red-200 bg-red-50/50">
+      <div className="flex items-center gap-2 mb-4">
+        <AlertCircle className="w-5 h-5 text-red-600" />
+        <h4 className="font-semibold text-red-800">Grammar & Vocabulary Corrections</h4>
+      </div>
+      <div className="space-y-4">
+        {corrections.map((correction, i) => (
+          <div key={i} className="p-3 bg-white rounded-lg border border-red-100">
+            <div className="text-xs font-medium text-gray-500 mb-2">
+              {i + 1}. {correction.category}
+            </div>
+            <div className="space-y-1 mb-2">
+              <div className="flex items-start gap-2">
+                <span className="text-red-500 font-bold">❌</span>
+                <span className="text-sm text-red-700 line-through">{correction.wrong}</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="text-green-500 font-bold">✅</span>
+                <span className="text-sm text-green-700 font-medium">{correction.correct}</span>
+              </div>
+            </div>
+            {correction.explanation && (
+              <div className="text-xs text-gray-600 bg-gray-50 p-2 rounded mb-2">
+                <span className="font-medium">📝 </span>
+                {correction.explanation}
+              </div>
+            )}
+            {correction.relatedVocab.length > 0 && (
+              <div className="text-xs text-blue-600">
+                <span className="font-medium">📚 Related: </span>
+                {correction.relatedVocab.join(", ")}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -396,6 +464,9 @@ export function AICoach({ type, content, context, topicTitle, onClose }: AICoach
                   color="bg-green-50 border-green-200 text-green-700"
                 />
 
+                {/* Grammar Corrections - NEW DETAILED FORMAT */}
+                <GrammarCorrectionsSection corrections={parsedFeedback.corrections} />
+
                 {/* Areas for Improvement */}
                 <FeedbackSection
                   title="Areas for Improvement"
@@ -428,6 +499,7 @@ export function AICoach({ type, content, context, topicTitle, onClose }: AICoach
                 {/* If no sections parsed, show raw */}
                 {!parsedFeedback.score &&
                  parsedFeedback.strengths.length === 0 &&
+                 parsedFeedback.corrections.length === 0 &&
                  parsedFeedback.improvements.length === 0 &&
                  parsedFeedback.suggestions.length === 0 && (
                   <div className="p-4 rounded-lg bg-gray-50 border border-gray-200 max-h-96 overflow-y-auto">
