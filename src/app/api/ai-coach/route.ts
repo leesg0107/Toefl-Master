@@ -2,9 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { createClient } from "@supabase/supabase-js";
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY || "",
-});
+// Note: Anthropic client is created per-request to ensure env vars are read correctly
+function getAnthropicClient() {
+  return new Anthropic({
+    apiKey: process.env.ANTHROPIC_API_KEY || "",
+  });
+}
 
 // Initialize Supabase admin client for server-side auth verification
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -178,9 +181,14 @@ function checkRateLimit(userId: string): boolean {
 }
 
 export async function POST(request: NextRequest) {
+  console.log("[AI Coach] Request received");
+
   try {
     // Check for API key
-    if (!process.env.ANTHROPIC_API_KEY) {
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    console.log("[AI Coach] API key present:", !!apiKey, "Length:", apiKey?.length || 0);
+
+    if (!apiKey) {
       return NextResponse.json(
         { error: "AI coaching is not configured. Please add ANTHROPIC_API_KEY to environment." },
         { status: 503 }
@@ -305,6 +313,10 @@ export async function POST(request: NextRequest) {
       userMessage = `Context: ${context}\n\nStudent's response:\n${content}`;
     }
 
+    console.log("[AI Coach] Calling Anthropic API with model: claude-3-5-sonnet-20241022");
+    console.log("[AI Coach] Content length:", userMessage.length);
+
+    const anthropic = getAnthropicClient();
     const message = await anthropic.messages.create({
       model: "claude-3-5-sonnet-20241022",
       max_tokens: 2048,
@@ -316,6 +328,8 @@ export async function POST(request: NextRequest) {
         },
       ],
     });
+
+    console.log("[AI Coach] Anthropic API call successful");
 
     const responseText = message.content[0].type === "text"
       ? message.content[0].text
