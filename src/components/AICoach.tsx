@@ -9,6 +9,7 @@ interface AICoachProps {
   type: "speaking-feedback" | "writing-feedback" | "email-review" | "discussion-review" | "grammar-check";
   content: string;
   context?: string;
+  topicTitle?: string;
   onClose?: () => void;
 }
 
@@ -122,13 +123,69 @@ function FeedbackSection({
   );
 }
 
-export function AICoach({ type, content, context, onClose }: AICoachProps) {
+export function AICoach({ type, content, context, topicTitle, onClose }: AICoachProps) {
   const { user, isPremium, session } = useAuth();
   const [feedback, setFeedback] = useState<string | null>(null);
   const [parsedFeedback, setParsedFeedback] = useState<ParsedFeedback | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showRaw, setShowRaw] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  // Map feedback type to session type
+  const getSessionType = (): "speaking" | "writing-email" | "writing-discussion" => {
+    switch (type) {
+      case "speaking-feedback":
+        return "speaking";
+      case "email-review":
+        return "writing-email";
+      case "discussion-review":
+        return "writing-discussion";
+      default:
+        return "writing-email";
+    }
+  };
+
+  // Save feedback to database
+  const saveFeedback = async (
+    rawFeedback: string,
+    parsed: ParsedFeedback,
+    usage?: { input_tokens: number; output_tokens: number }
+  ) => {
+    if (!session?.access_token) return;
+
+    try {
+      const response = await fetch("/api/feedback", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          sessionType: getSessionType(),
+          feedbackType: type,
+          topicTitle,
+          content,
+          context,
+          wordCount: content.split(/\s+/).filter(w => w.length > 0).length,
+          score: parsed.score,
+          strengths: parsed.strengths,
+          improvements: parsed.improvements,
+          suggestions: parsed.suggestions,
+          correctedVersion: parsed.correctedVersion,
+          rawFeedback,
+          inputTokens: usage?.input_tokens,
+          outputTokens: usage?.output_tokens,
+        }),
+      });
+
+      if (response.ok) {
+        setSaved(true);
+      }
+    } catch (err) {
+      console.error("Failed to save feedback:", err);
+    }
+  };
 
   const getFeedback = async () => {
     if (!content.trim()) {
@@ -138,6 +195,7 @@ export function AICoach({ type, content, context, onClose }: AICoachProps) {
 
     setLoading(true);
     setError(null);
+    setSaved(false);
 
     try {
       const headers: Record<string, string> = {
@@ -161,8 +219,12 @@ export function AICoach({ type, content, context, onClose }: AICoachProps) {
         throw new Error(data.error || "Failed to get feedback");
       }
 
+      const parsed = parseFeedback(data.feedback);
       setFeedback(data.feedback);
-      setParsedFeedback(parseFeedback(data.feedback));
+      setParsedFeedback(parsed);
+
+      // Auto-save feedback to database
+      saveFeedback(data.feedback, parsed, data.usage);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -381,17 +443,26 @@ export function AICoach({ type, content, context, onClose }: AICoachProps) {
               </>
             )}
 
-            {/* Get New Feedback Button */}
-            <button
-              onClick={() => {
-                setFeedback(null);
-                setParsedFeedback(null);
-                setError(null);
-              }}
-              className="text-sm text-blue-600 hover:underline"
-            >
-              ↻ Get new feedback
-            </button>
+            {/* Saved Indicator & Actions */}
+            <div className="flex items-center justify-between">
+              {saved && (
+                <span className="text-xs text-green-600 flex items-center gap-1">
+                  <CheckCircle className="w-3 h-3" />
+                  Saved to Study Notes
+                </span>
+              )}
+              <button
+                onClick={() => {
+                  setFeedback(null);
+                  setParsedFeedback(null);
+                  setError(null);
+                  setSaved(false);
+                }}
+                className="text-sm text-blue-600 hover:underline"
+              >
+                ↻ Get new feedback
+              </button>
+            </div>
           </div>
         )}
       </div>
@@ -404,6 +475,7 @@ export function AICoachButton({
   type,
   content,
   context,
+  topicTitle,
 }: Omit<AICoachProps, "onClose">) {
   const [isOpen, setIsOpen] = useState(false);
   const { isPremium } = useAuth();
@@ -434,6 +506,7 @@ export function AICoachButton({
               type={type}
               content={content}
               context={context}
+              topicTitle={topicTitle}
               onClose={() => setIsOpen(false)}
             />
           </div>

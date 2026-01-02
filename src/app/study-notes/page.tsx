@@ -1,7 +1,9 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { ArrowLeft, Mic, PenTool, Target, BookOpen, ArrowRight } from "lucide-react";
+import { ArrowLeft, Mic, PenTool, Target, BookOpen, ArrowRight, Loader2 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const sections = [
   {
@@ -30,7 +32,77 @@ const sections = [
   },
 ];
 
+interface Stats {
+  speakingCount: number;
+  writingCount: number;
+  totalWords: number;
+  avgScore: string;
+}
+
 export default function StudyNotesPage() {
+  const { session } = useAuth();
+  const [stats, setStats] = useState<Stats>({
+    speakingCount: 0,
+    writingCount: 0,
+    totalWords: 0,
+    avgScore: "--",
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      if (!session?.access_token) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const response = await fetch("/api/feedback", {
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const feedback = data.feedback || [];
+
+          const speakingCount = feedback.filter((f: { feedback_type: string }) =>
+            f.feedback_type === "speaking-feedback"
+          ).length;
+
+          const writingCount = feedback.filter((f: { feedback_type: string }) =>
+            ["email-review", "discussion-review", "writing-feedback"].includes(f.feedback_type)
+          ).length;
+
+          const totalWords = feedback.reduce((sum: number, f: { practice_sessions?: { word_count?: number } }) =>
+            sum + (f.practice_sessions?.word_count || 0), 0
+          );
+
+          const scores = feedback
+            .filter((f: { score?: string }) => f.score)
+            .map((f: { score?: string }) => {
+              const match = f.score?.match(/(\d+(?:\.\d+)?)/);
+              return match ? parseFloat(match[1]) : null;
+            })
+            .filter((s: number | null): s is number => s !== null);
+
+          const avgScore = scores.length > 0
+            ? (scores.reduce((a: number, b: number) => a + b, 0) / scores.length).toFixed(1)
+            : "--";
+
+          setStats({ speakingCount, writingCount, totalWords, avgScore });
+        }
+      } catch (error) {
+        console.error("Failed to fetch stats:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, [session]);
+
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-2xl mx-auto px-6 py-12">
@@ -49,24 +121,30 @@ export default function StudyNotesPage() {
         </div>
 
         {/* Stats */}
-        <div className="flex gap-8 mb-8 text-center">
-          <div>
-            <p className="text-2xl font-bold text-gray-900">0</p>
-            <p className="text-xs text-gray-400">Speaking</p>
+        {loading ? (
+          <div className="flex justify-center py-4 mb-8">
+            <Loader2 className="w-6 h-6 text-gray-400 animate-spin" />
           </div>
-          <div>
-            <p className="text-2xl font-bold text-gray-900">0</p>
-            <p className="text-xs text-gray-400">Writing</p>
+        ) : (
+          <div className="flex gap-8 mb-8 text-center">
+            <div>
+              <p className="text-2xl font-bold text-gray-900">{stats.speakingCount}</p>
+              <p className="text-xs text-gray-400">Speaking</p>
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-900">{stats.writingCount}</p>
+              <p className="text-xs text-gray-400">Writing</p>
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-900">{stats.totalWords}</p>
+              <p className="text-xs text-gray-400">Words</p>
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-900">{stats.avgScore}</p>
+              <p className="text-xs text-gray-400">Avg Score</p>
+            </div>
           </div>
-          <div>
-            <p className="text-2xl font-bold text-gray-900">0</p>
-            <p className="text-xs text-gray-400">Words</p>
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-gray-900">--</p>
-            <p className="text-xs text-gray-400">Avg Score</p>
-          </div>
-        </div>
+        )}
 
         {/* Sections */}
         <div className="space-y-3">

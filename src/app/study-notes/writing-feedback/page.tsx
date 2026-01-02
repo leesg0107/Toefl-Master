@@ -1,152 +1,343 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { ArrowLeft, PenTool, TrendingUp, Target, FileText } from "lucide-react";
+import { ArrowLeft, PenTool, TrendingUp, Target, ChevronDown, ChevronUp, Loader2, CheckCircle, AlertCircle, BookOpen, Mail, MessageSquare } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+
+interface FeedbackItem {
+  id: string;
+  feedback_type: string;
+  score: string | null;
+  strengths: string[] | null;
+  improvements: string[] | null;
+  suggestions: string[] | null;
+  corrected_version: string | null;
+  raw_feedback: string;
+  created_at: string;
+  practice_sessions: {
+    id: string;
+    session_type: string;
+    topic_title: string | null;
+    content: string;
+    context: string | null;
+    word_count: number | null;
+    created_at: string;
+  } | null;
+}
+
+function FeedbackCard({ feedback, isExpanded, onToggle }: { feedback: FeedbackItem; isExpanded: boolean; onToggle: () => void }) {
+  const session = feedback.practice_sessions;
+  const date = new Date(feedback.created_at).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+
+  const isEmail = feedback.feedback_type === "email-review";
+  const Icon = isEmail ? Mail : MessageSquare;
+  const typeLabel = isEmail ? "Email" : "Discussion";
+  const bgColor = isEmail ? "bg-orange-50" : "bg-green-50";
+  const iconColor = isEmail ? "text-orange-600" : "text-green-600";
+  const badgeColor = isEmail ? "bg-orange-100 text-orange-700" : "bg-green-100 text-green-700";
+
+  return (
+    <div className="rounded-xl bg-white border border-gray-200 overflow-hidden">
+      <button
+        onClick={onToggle}
+        className="w-full p-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+      >
+        <div className="flex items-center gap-4">
+          <div className={`p-2 rounded-lg ${bgColor}`}>
+            <Icon className={`w-5 h-5 ${iconColor}`} />
+          </div>
+          <div className="text-left">
+            <div className="flex items-center gap-2">
+              <h3 className="font-semibold text-gray-900">
+                {session?.topic_title || `${typeLabel} Writing`}
+              </h3>
+              <span className={`px-2 py-0.5 rounded text-xs font-medium ${badgeColor}`}>
+                {typeLabel}
+              </span>
+            </div>
+            <p className="text-sm text-gray-500">
+              {date} • {session?.word_count || 0} words
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-4">
+          {feedback.score && (
+            <span className="px-3 py-1 rounded-full bg-purple-100 text-purple-700 font-semibold text-sm">
+              {feedback.score}
+            </span>
+          )}
+          {isExpanded ? (
+            <ChevronUp className="w-5 h-5 text-gray-400" />
+          ) : (
+            <ChevronDown className="w-5 h-5 text-gray-400" />
+          )}
+        </div>
+      </button>
+
+      {isExpanded && (
+        <div className="px-4 pb-4 space-y-4 border-t border-gray-100">
+          {/* Your Response */}
+          {session?.content && (
+            <div className="pt-4">
+              <p className="text-xs font-medium text-gray-500 mb-2">Your Response:</p>
+              <p className="text-sm text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-wrap">
+                {session.content}
+              </p>
+            </div>
+          )}
+
+          {/* Strengths */}
+          {feedback.strengths && feedback.strengths.length > 0 && (
+            <div className="p-3 rounded-lg bg-green-50 border border-green-200">
+              <div className="flex items-center gap-2 mb-2 text-green-700">
+                <CheckCircle className="w-4 h-4" />
+                <span className="font-semibold text-sm">Strengths</span>
+              </div>
+              <ul className="text-sm text-green-800 space-y-1">
+                {feedback.strengths.map((s, i) => (
+                  <li key={i}>• {s}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Areas for Improvement */}
+          {feedback.improvements && feedback.improvements.length > 0 && (
+            <div className="p-3 rounded-lg bg-amber-50 border border-amber-200">
+              <div className="flex items-center gap-2 mb-2 text-amber-700">
+                <AlertCircle className="w-4 h-4" />
+                <span className="font-semibold text-sm">Areas for Improvement</span>
+              </div>
+              <ul className="text-sm text-amber-800 space-y-1">
+                {feedback.improvements.map((s, i) => (
+                  <li key={i}>• {s}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Suggestions */}
+          {feedback.suggestions && feedback.suggestions.length > 0 && (
+            <div className="p-3 rounded-lg bg-blue-50 border border-blue-200">
+              <div className="flex items-center gap-2 mb-2 text-blue-700">
+                <BookOpen className="w-4 h-4" />
+                <span className="font-semibold text-sm">Suggestions</span>
+              </div>
+              <ul className="text-sm text-blue-800 space-y-1">
+                {feedback.suggestions.map((s, i) => (
+                  <li key={i}>• {s}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Corrected Version */}
+          {feedback.corrected_version && (
+            <div className="p-3 rounded-lg bg-purple-50 border border-purple-200">
+              <p className="text-xs font-medium text-purple-700 mb-2">Improved Version:</p>
+              <p className="text-sm text-purple-800 whitespace-pre-wrap">
+                {feedback.corrected_version}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function WritingFeedbackPage() {
+  const { session } = useAuth();
+  const [feedbackList, setFeedbackList] = useState<FeedbackItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [filter, setFilter] = useState<"all" | "email" | "discussion">("all");
+
+  useEffect(() => {
+    const fetchFeedback = async () => {
+      if (!session?.access_token) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const response = await fetch("/api/feedback?type=writing", {
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setFeedbackList(data.feedback || []);
+        }
+      } catch (error) {
+        console.error("Failed to fetch feedback:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFeedback();
+  }, [session]);
+
+  // Filter feedback
+  const filteredFeedback = feedbackList.filter(f => {
+    if (filter === "all") return true;
+    if (filter === "email") return f.feedback_type === "email-review";
+    if (filter === "discussion") return f.feedback_type === "discussion-review";
+    return true;
+  });
+
+  // Calculate stats
+  const emailCount = feedbackList.filter(f => f.feedback_type === "email-review").length;
+  const discussionCount = feedbackList.filter(f => f.feedback_type === "discussion-review").length;
+  const totalWords = feedbackList.reduce((sum, f) => sum + (f.practice_sessions?.word_count || 0), 0);
+  const scores = feedbackList
+    .filter(f => f.score)
+    .map(f => {
+      const match = f.score?.match(/(\d+(?:\.\d+)?)/);
+      return match ? parseFloat(match[1]) : null;
+    })
+    .filter((s): s is number => s !== null);
+  const avgScore = scores.length > 0 ? (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1) : "--";
+
   return (
-    <div className="min-h-screen py-12 px-4">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-white">
+      <div className="max-w-2xl mx-auto px-6 py-12">
         {/* Header */}
         <div className="mb-8">
           <Link
             href="/study-notes"
-            className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-4"
+            className="inline-flex items-center gap-2 text-gray-400 hover:text-gray-600 text-sm mb-4"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to Study Notes
           </Link>
-          <h1 className="text-3xl font-bold text-white mb-2">Writing Feedback</h1>
-          <p className="text-gray-400">Track your writing practice and get improvement suggestions.</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Writing Feedback</h1>
+          <p className="text-gray-500 text-sm">Track your writing practice and review AI feedback.</p>
         </div>
 
         {/* Stats Overview */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="p-4 rounded-xl bg-[#1e293b] border border-[#334155] text-center">
-            <p className="text-3xl font-bold text-purple-400">0</p>
-            <p className="text-xs text-gray-400">Build Sentence</p>
+        <div className="flex gap-6 mb-8 text-center">
+          <div>
+            <p className="text-2xl font-bold text-gray-900">{emailCount}</p>
+            <p className="text-xs text-gray-400">Emails</p>
           </div>
-          <div className="p-4 rounded-xl bg-[#1e293b] border border-[#334155] text-center">
-            <p className="text-3xl font-bold text-orange-400">0</p>
-            <p className="text-xs text-gray-400">Emails Written</p>
-          </div>
-          <div className="p-4 rounded-xl bg-[#1e293b] border border-[#334155] text-center">
-            <p className="text-3xl font-bold text-green-400">0</p>
+          <div>
+            <p className="text-2xl font-bold text-gray-900">{discussionCount}</p>
             <p className="text-xs text-gray-400">Discussions</p>
           </div>
-          <div className="p-4 rounded-xl bg-[#1e293b] border border-[#334155] text-center">
-            <p className="text-3xl font-bold text-yellow-400">--</p>
-            <p className="text-xs text-gray-400">Est. Score</p>
+          <div>
+            <p className="text-2xl font-bold text-gray-900">{totalWords}</p>
+            <p className="text-xs text-gray-400">Words</p>
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-gray-900">{avgScore}</p>
+            <p className="text-xs text-gray-400">Avg Score</p>
           </div>
         </div>
+
+        {/* Filter Tabs */}
+        {feedbackList.length > 0 && (
+          <div className="flex gap-2 mb-6">
+            <button
+              onClick={() => setFilter("all")}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                filter === "all"
+                  ? "bg-gray-900 text-white"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              }`}
+            >
+              All ({feedbackList.length})
+            </button>
+            <button
+              onClick={() => setFilter("email")}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                filter === "email"
+                  ? "bg-orange-500 text-white"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              }`}
+            >
+              Email ({emailCount})
+            </button>
+            <button
+              onClick={() => setFilter("discussion")}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                filter === "discussion"
+                  ? "bg-green-500 text-white"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              }`}
+            >
+              Discussion ({discussionCount})
+            </button>
+          </div>
+        )}
+
+        {/* Loading State */}
+        {loading && (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
+          </div>
+        )}
 
         {/* Empty State */}
-        <div className="p-12 rounded-xl bg-[#1e293b] border border-[#334155] text-center mb-8">
-          <PenTool className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-white mb-2">No Writing Practice Yet</h3>
-          <p className="text-gray-400 mb-6">Complete some writing exercises to see your feedback here.</p>
-          <Link
-            href="/writing"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-purple-500 hover:bg-purple-600 rounded-lg transition-colors"
-          >
-            Start Writing Practice
-          </Link>
-        </div>
-
-        {/* Task-specific Tips */}
-        <div className="grid md:grid-cols-3 gap-4 mb-8">
-          <div className="p-5 rounded-xl bg-[#1e293b] border border-[#334155]">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
-                <span className="text-purple-400 font-bold">1</span>
-              </div>
-              <h3 className="font-semibold text-white">Build Sentence</h3>
-            </div>
-            <ul className="text-xs text-gray-400 space-y-1">
-              <li>• Identify subject and verb first</li>
-              <li>• Look for clause markers (who, which)</li>
-              <li>• Check article usage (a, an, the)</li>
-            </ul>
+        {!loading && feedbackList.length === 0 && (
+          <div className="p-12 rounded-xl bg-gray-50 border border-gray-200 text-center mb-8">
+            <PenTool className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">No Writing Feedback Yet</h3>
+            <p className="text-gray-500 mb-6">Complete writing exercises with AI coaching to see your feedback here.</p>
+            <Link
+              href="/writing"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-gray-900 hover:bg-gray-800 text-white rounded-lg font-medium transition-colors"
+            >
+              Start Writing Practice
+            </Link>
           </div>
+        )}
 
-          <div className="p-5 rounded-xl bg-[#1e293b] border border-[#334155]">
+        {/* Feedback List */}
+        {!loading && filteredFeedback.length > 0 && (
+          <div className="space-y-4 mb-8">
+            {filteredFeedback.map((feedback) => (
+              <FeedbackCard
+                key={feedback.id}
+                feedback={feedback}
+                isExpanded={expandedId === feedback.id}
+                onToggle={() => setExpandedId(expandedId === feedback.id ? null : feedback.id)}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Tips */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="p-4 rounded-xl bg-gray-50 border border-gray-200">
             <div className="flex items-center gap-2 mb-3">
-              <div className="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center">
-                <span className="text-orange-400 font-bold">2</span>
-              </div>
-              <h3 className="font-semibold text-white">Email Writing</h3>
+              <Mail className="w-4 h-4 text-orange-600" />
+              <h3 className="font-semibold text-gray-900 text-sm">Email Tips</h3>
             </div>
-            <ul className="text-xs text-gray-400 space-y-1">
+            <ul className="text-xs text-gray-500 space-y-1">
               <li>• Cover all 3 required points</li>
-              <li>• Use polite language (could, would)</li>
+              <li>• Use polite language</li>
               <li>• Keep it 80-120 words</li>
             </ul>
           </div>
-
-          <div className="p-5 rounded-xl bg-[#1e293b] border border-[#334155]">
+          <div className="p-4 rounded-xl bg-gray-50 border border-gray-200">
             <div className="flex items-center gap-2 mb-3">
-              <div className="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center">
-                <span className="text-green-400 font-bold">3</span>
-              </div>
-              <h3 className="font-semibold text-white">Discussion</h3>
+              <MessageSquare className="w-4 h-4 text-green-600" />
+              <h3 className="font-semibold text-gray-900 text-sm">Discussion Tips</h3>
             </div>
-            <ul className="text-xs text-gray-400 space-y-1">
+            <ul className="text-xs text-gray-500 space-y-1">
               <li>• Reference classmates&apos; posts</li>
               <li>• State your position clearly</li>
               <li>• Aim for 100-130 words</li>
             </ul>
-          </div>
-        </div>
-
-        {/* Common Errors */}
-        <div className="p-6 rounded-xl bg-[#1e293b] border border-[#334155] mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <Target className="w-5 h-5 text-red-400" />
-            <h3 className="font-semibold text-white">Common Errors to Watch</h3>
-          </div>
-          <div className="grid md:grid-cols-2 gap-4">
-            <div className="p-4 rounded-lg bg-[#0f172a]">
-              <p className="text-white font-medium mb-2">Grammar</p>
-              <ul className="text-sm text-gray-400 space-y-1">
-                <li>• Subject-verb agreement</li>
-                <li>• Article usage (a/an/the)</li>
-                <li>• Verb tense consistency</li>
-              </ul>
-            </div>
-            <div className="p-4 rounded-lg bg-[#0f172a]">
-              <p className="text-white font-medium mb-2">Structure</p>
-              <ul className="text-sm text-gray-400 space-y-1">
-                <li>• Missing topic sentence</li>
-                <li>• Weak transitions</li>
-                <li>• Incomplete conclusions</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        {/* Writing Checklist */}
-        <div className="p-6 rounded-xl bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/30">
-          <div className="flex items-center gap-3 mb-4">
-            <FileText className="w-5 h-5 text-purple-400" />
-            <h3 className="font-semibold text-white">Self-Check Before Submitting</h3>
-          </div>
-          <div className="grid md:grid-cols-2 gap-4 text-sm">
-            <div>
-              <p className="text-gray-300 mb-2">Content:</p>
-              <ul className="text-gray-400 space-y-1">
-                <li>☐ Addressed all parts of the question</li>
-                <li>☐ Provided specific examples</li>
-                <li>☐ Ideas are clearly explained</li>
-              </ul>
-            </div>
-            <div>
-              <p className="text-gray-300 mb-2">Language:</p>
-              <ul className="text-gray-400 space-y-1">
-                <li>☐ Checked spelling and punctuation</li>
-                <li>☐ Varied vocabulary used</li>
-                <li>☐ Appropriate tone maintained</li>
-              </ul>
-            </div>
           </div>
         </div>
       </div>

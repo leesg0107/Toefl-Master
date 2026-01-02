@@ -118,3 +118,84 @@ CREATE INDEX IF NOT EXISTS idx_subscriptions_status ON public.subscriptions(stat
 -- This is already handled by default in Supabase, but adding for clarity
 GRANT ALL ON public.profiles TO service_role;
 GRANT ALL ON public.subscriptions TO service_role;
+
+-- =============================================
+-- PRACTICE SESSIONS & AI FEEDBACK TABLES
+-- =============================================
+
+-- 11. Create practice_sessions table for tracking practice history
+CREATE TABLE IF NOT EXISTS public.practice_sessions (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+  session_type TEXT NOT NULL CHECK (session_type IN ('speaking', 'writing-email', 'writing-discussion')),
+  topic_title TEXT,
+  content TEXT NOT NULL,
+  context TEXT,
+  word_count INTEGER,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 12. Create ai_feedback table for storing AI coaching results
+CREATE TABLE IF NOT EXISTS public.ai_feedback (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+  session_id UUID REFERENCES public.practice_sessions(id) ON DELETE CASCADE,
+  feedback_type TEXT NOT NULL CHECK (feedback_type IN ('speaking-feedback', 'writing-feedback', 'email-review', 'discussion-review', 'grammar-check')),
+  score TEXT,
+  strengths TEXT[],
+  improvements TEXT[],
+  suggestions TEXT[],
+  corrected_version TEXT,
+  raw_feedback TEXT NOT NULL,
+  input_tokens INTEGER,
+  output_tokens INTEGER,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 13. Enable RLS for new tables
+ALTER TABLE public.practice_sessions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.ai_feedback ENABLE ROW LEVEL SECURITY;
+
+-- 14. Create RLS policies for practice_sessions
+CREATE POLICY "Users can view own practice sessions"
+  ON public.practice_sessions
+  FOR SELECT
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own practice sessions"
+  ON public.practice_sessions
+  FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete own practice sessions"
+  ON public.practice_sessions
+  FOR DELETE
+  USING (auth.uid() = user_id);
+
+-- 15. Create RLS policies for ai_feedback
+CREATE POLICY "Users can view own ai feedback"
+  ON public.ai_feedback
+  FOR SELECT
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own ai feedback"
+  ON public.ai_feedback
+  FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete own ai feedback"
+  ON public.ai_feedback
+  FOR DELETE
+  USING (auth.uid() = user_id);
+
+-- 16. Create indexes for practice tables
+CREATE INDEX IF NOT EXISTS idx_practice_sessions_user_id ON public.practice_sessions(user_id);
+CREATE INDEX IF NOT EXISTS idx_practice_sessions_type ON public.practice_sessions(session_type);
+CREATE INDEX IF NOT EXISTS idx_practice_sessions_created_at ON public.practice_sessions(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_ai_feedback_user_id ON public.ai_feedback(user_id);
+CREATE INDEX IF NOT EXISTS idx_ai_feedback_type ON public.ai_feedback(feedback_type);
+CREATE INDEX IF NOT EXISTS idx_ai_feedback_created_at ON public.ai_feedback(created_at DESC);
+
+-- Grant service_role access
+GRANT ALL ON public.practice_sessions TO service_role;
+GRANT ALL ON public.ai_feedback TO service_role;
