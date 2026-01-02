@@ -103,6 +103,9 @@ export default function ListenRepeatSessionPage() {
     stopListening();
     setPhase("evaluating");
 
+    console.log("[evaluateWithAI] Auth session exists:", !!authSession);
+    console.log("[evaluateWithAI] Token exists:", !!authSession?.access_token);
+
     try {
       const response = await fetch("/api/speaking-eval", {
         method: "POST",
@@ -119,6 +122,7 @@ export default function ListenRepeatSessionPage() {
       });
 
       const data = await response.json();
+      console.log("[evaluateWithAI] Response status:", response.status, "Data:", data);
 
       if (response.ok) {
         setCurrentFeedback(data.feedback);
@@ -129,12 +133,14 @@ export default function ListenRepeatSessionPage() {
           score: data.score,
         }]);
       } else {
-        // Fallback if API fails
-        setCurrentFeedback("Could not get AI feedback. Please try again.");
+        // Show specific error message
+        const errorMessage = data.error || "Unknown error";
+        console.error("[evaluateWithAI] API error:", response.status, errorMessage);
+        setCurrentFeedback(`Error: ${errorMessage} (Status: ${response.status})`);
         setResults([...results, {
           correct: false,
           userText: transcript || "(no speech detected)",
-          feedback: "Evaluation failed",
+          feedback: `API Error: ${errorMessage}`,
           score: 0,
         }]);
       }
