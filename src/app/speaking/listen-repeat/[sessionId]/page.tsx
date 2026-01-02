@@ -100,6 +100,10 @@ export default function ListenRepeatSessionPage() {
   };
 
   const evaluateWithAI = async () => {
+    // Capture transcript BEFORE stopping (React state timing issue)
+    const capturedTranscript = transcript;
+    console.log("[evaluateWithAI] Captured transcript:", capturedTranscript);
+
     stopListening();
     setPhase("evaluating");
 
@@ -115,7 +119,7 @@ export default function ListenRepeatSessionPage() {
         },
         body: JSON.stringify({
           targetSentence: currentSentence,
-          userTranscript: transcript || "(no speech detected)",
+          userTranscript: capturedTranscript || "(no speech detected)",
           sessionTitle: sessionData.title,
           location: sessionData.location,
         }),
@@ -128,7 +132,7 @@ export default function ListenRepeatSessionPage() {
         setCurrentFeedback(data.feedback);
         setResults([...results, {
           correct: data.isCorrect,
-          userText: transcript || "(no speech detected)",
+          userText: capturedTranscript || "(no speech detected)",
           feedback: data.feedback,
           score: data.score,
         }]);
@@ -139,7 +143,7 @@ export default function ListenRepeatSessionPage() {
         setCurrentFeedback(`Error: ${errorMessage} (Status: ${response.status})`);
         setResults([...results, {
           correct: false,
-          userText: transcript || "(no speech detected)",
+          userText: capturedTranscript || "(no speech detected)",
           feedback: `API Error: ${errorMessage}`,
           score: 0,
         }]);
@@ -149,7 +153,7 @@ export default function ListenRepeatSessionPage() {
       setCurrentFeedback("Could not get AI feedback. Please try again.");
       setResults([...results, {
         correct: false,
-        userText: transcript || "(no speech detected)",
+        userText: capturedTranscript || "(no speech detected)",
         feedback: "Evaluation failed",
         score: 0,
       }]);
