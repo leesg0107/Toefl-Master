@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -13,48 +13,35 @@ import {
   RotateCcw,
   ArrowRight,
   Trophy,
-  MapPin
+  MapPin,
+  Loader2,
+  Lock
 } from "lucide-react";
 import { listenRepeatSessions } from "@/data/speaking/listenRepeat";
-import { useTextToSpeech, useSpeechRecognition, SpeechRate } from "@/hooks/useSpeech";
+import { useTextToSpeech, useSpeechRecognition } from "@/hooks/useSpeech";
+import { useAuth } from "@/contexts/AuthContext";
 
-// Map difficulty to speech rate
-const difficultyToRate: Record<string, SpeechRate> = {
-  beginner: "slow",
-  intermediate: "normal",
-  advanced: "fast",
-};
-
-const difficultyConfig = {
-  beginner: {
-    label: "Beginner",
-    color: "bg-green-500/20 text-green-400 border-green-500/30",
-    rateLabel: "Slow",
-  },
-  intermediate: {
-    label: "Intermediate",
-    color: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
-    rateLabel: "Normal",
-  },
-  advanced: {
-    label: "Advanced",
-    color: "bg-red-500/20 text-red-400 border-red-500/30",
-    rateLabel: "Fast",
-  },
-};
+interface EvaluationResult {
+  correct: boolean;
+  userText: string;
+  feedback: string;
+  score: number;
+}
 
 export default function ListenRepeatSessionPage() {
   const params = useParams();
+  const router = useRouter();
   const sessionId = params.sessionId as string;
+  const { isPremium, session: authSession } = useAuth();
 
-  const session = listenRepeatSessions.find((s) => s.id === sessionId);
+  const sessionData = listenRepeatSessions.find((s) => s.id === sessionId);
 
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [phase, setPhase] = useState<"ready" | "listening" | "recording" | "result">("ready");
-  const [results, setResults] = useState<{ correct: boolean; userText: string }[]>([]);
-  const [hasPlayed, setHasPlayed] = useState(false);
+  const [phase, setPhase] = useState<"ready" | "listening" | "recording" | "evaluating" | "result">("ready");
+  const [results, setResults] = useState<EvaluationResult[]>([]);
+  const [currentFeedback, setCurrentFeedback] = useState<string>("");
 
-  const { speak, isSpeaking, isSupported: ttsSupported } = useTextToSpeech();
+  const { speak, isSupported: ttsSupported } = useTextToSpeech();
   const {
     startListening,
     stopListening,
@@ -64,7 +51,14 @@ export default function ListenRepeatSessionPage() {
     setTranscript
   } = useSpeechRecognition();
 
-  if (!session) {
+  // Redirect if not premium
+  useEffect(() => {
+    if (!isPremium) {
+      router.push("/speaking/listen-repeat");
+    }
+  }, [isPremium, router]);
+
+  if (!sessionData) {
     return (
       <div className="min-h-screen py-12 px-4 flex items-center justify-center">
         <div className="text-center">
@@ -77,88 +71,126 @@ export default function ListenRepeatSessionPage() {
     );
   }
 
-  const currentSentence = session.sentences[currentIndex];
-  const isComplete = currentIndex >= session.sentences.length;
+  if (!isPremium) {
+    return (
+      <div className="min-h-screen py-12 px-4 flex items-center justify-center">
+        <div className="text-center">
+          <Lock className="w-12 h-12 text-amber-400 mx-auto mb-4" />
+          <p className="text-gray-400 mb-4">Premium subscription required</p>
+          <Link href="/pricing" className="text-blue-400 hover:underline">
+            Upgrade to Premium
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const currentSentence = sessionData.sentences[currentIndex];
+  const isComplete = currentIndex >= sessionData.sentences.length;
   const correctCount = results.filter((r) => r.correct).length;
-  const speechRate = difficultyToRate[session.difficulty];
-  const config = difficultyConfig[session.difficulty];
 
   const playSentence = () => {
     setPhase("listening");
-    setHasPlayed(true);
     speak(currentSentence, () => {
       setPhase("recording");
-      // Auto-start recording after playback
       setTimeout(() => {
         startListening();
       }, 500);
-    }, speechRate);
+    });
   };
 
-  const checkAnswer = () => {
+  const evaluateWithAI = async () => {
     stopListening();
-    const userText = transcript.toLowerCase().trim();
-    const targetText = currentSentence.toLowerCase().trim();
+    setPhase("evaluating");
 
-    // Simple comparison - check if most words match
-    const userWords = userText.split(/\s+/);
-    const targetWords = targetText.split(/\s+/).map(w => w.replace(/[.,!?]/g, ""));
+    try {
+      const response = await fetch("/api/speaking-eval", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${authSession?.access_token}`,
+        },
+        body: JSON.stringify({
+          targetSentence: currentSentence,
+          userTranscript: transcript || "(no speech detected)",
+          sessionTitle: sessionData.title,
+          location: sessionData.location,
+        }),
+      });
 
-    let matchCount = 0;
-    targetWords.forEach(word => {
-      if (userWords.some(uw => uw.replace(/[.,!?]/g, "") === word)) {
-        matchCount++;
+      const data = await response.json();
+
+      if (response.ok) {
+        setCurrentFeedback(data.feedback);
+        setResults([...results, {
+          correct: data.isCorrect,
+          userText: transcript || "(no speech detected)",
+          feedback: data.feedback,
+          score: data.score,
+        }]);
+      } else {
+        // Fallback if API fails
+        setCurrentFeedback("Could not get AI feedback. Please try again.");
+        setResults([...results, {
+          correct: false,
+          userText: transcript || "(no speech detected)",
+          feedback: "Evaluation failed",
+          score: 0,
+        }]);
       }
-    });
+    } catch (error) {
+      console.error("Evaluation error:", error);
+      setCurrentFeedback("Could not get AI feedback. Please try again.");
+      setResults([...results, {
+        correct: false,
+        userText: transcript || "(no speech detected)",
+        feedback: "Evaluation failed",
+        score: 0,
+      }]);
+    }
 
-    const accuracy = matchCount / targetWords.length;
-    const isCorrect = accuracy >= 0.7;
-
-    setResults([...results, { correct: isCorrect, userText: transcript }]);
     setPhase("result");
   };
 
   const nextSentence = () => {
     setCurrentIndex(currentIndex + 1);
     setPhase("ready");
-    setHasPlayed(false);
     setTranscript("");
+    setCurrentFeedback("");
   };
 
   const restartSession = () => {
     setCurrentIndex(0);
     setPhase("ready");
     setResults([]);
-    setHasPlayed(false);
     setTranscript("");
+    setCurrentFeedback("");
   };
 
-  // Stop recording after 5 seconds (8 seconds for advanced)
+  // Auto-stop recording after 6 seconds
   useEffect(() => {
     let timeout: NodeJS.Timeout;
-    const recordingTime = session.difficulty === "advanced" ? 8000 : 5000;
     if (isListening) {
       timeout = setTimeout(() => {
-        checkAnswer();
-      }, recordingTime);
+        evaluateWithAI();
+      }, 6000);
     }
     return () => clearTimeout(timeout);
   }, [isListening]);
 
   if (isComplete) {
+    const averageScore = results.reduce((sum, r) => sum + r.score, 0) / results.length;
+
     return (
       <div className="min-h-screen py-12 px-4">
         <div className="max-w-2xl mx-auto text-center">
           <div className="p-6 rounded-2xl bg-[#1e293b] border border-[#334155]">
             <Trophy className="w-16 h-16 text-yellow-400 mx-auto mb-4" />
             <h1 className="text-3xl font-bold text-white mb-2">Session Complete!</h1>
-            <p className="text-gray-400 mb-2">{session.title}</p>
+            <p className="text-gray-400 mb-2">{sessionData.title}</p>
             <div className="flex items-center justify-center gap-2 mb-6">
               <MapPin className="w-4 h-4 text-gray-500" />
-              <span className="text-gray-500">{session.location}</span>
-              <span className={`px-2 py-0.5 rounded text-xs font-medium border ${config.color}`}>
-                {config.label}
-              </span>
+              <span className="text-gray-500">{sessionData.location}</span>
             </div>
 
             <div className="flex justify-center gap-8 mb-8">
@@ -167,31 +199,33 @@ export default function ListenRepeatSessionPage() {
                 <p className="text-sm text-gray-400">Correct</p>
               </div>
               <div className="text-center">
-                <p className="text-4xl font-bold text-red-400">{session.sentences.length - correctCount}</p>
+                <p className="text-4xl font-bold text-blue-400">{averageScore.toFixed(1)}</p>
+                <p className="text-sm text-gray-400">Avg Score</p>
+              </div>
+              <div className="text-center">
+                <p className="text-4xl font-bold text-red-400">{sessionData.sentences.length - correctCount}</p>
                 <p className="text-sm text-gray-400">Needs Practice</p>
               </div>
             </div>
 
-            <div className="space-y-2 mb-8">
-              {session.sentences.map((sentence, i) => (
+            <div className="space-y-2 mb-8 max-h-64 overflow-y-auto">
+              {sessionData.sentences.map((sentence, i) => (
                 <div
                   key={i}
-                  className={`flex items-center gap-3 p-3 rounded-lg text-left ${
+                  className={`flex items-start gap-3 p-3 rounded-lg text-left ${
                     results[i]?.correct ? "bg-green-500/10" : "bg-red-500/10"
                   }`}
                 >
                   {results[i]?.correct ? (
-                    <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0" />
+                    <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
                   ) : (
-                    <XCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
+                    <XCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
                   )}
                   <div className="flex-1">
                     <p className="text-sm text-white">{sentence}</p>
-                    {results[i]?.userText && !results[i]?.correct && (
-                      <p className="text-xs text-gray-500 mt-1">
-                        You said: {results[i].userText}
-                      </p>
-                    )}
+                    <p className="text-xs text-gray-500 mt-1">
+                      Score: {results[i]?.score || 0}/10
+                    </p>
                   </div>
                 </div>
               ))}
@@ -230,33 +264,26 @@ export default function ListenRepeatSessionPage() {
             <ArrowLeft className="w-4 h-4" />
             Back
           </Link>
-          <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-2xl font-bold text-white">{session.title}</h1>
-            <span className={`px-2 py-0.5 rounded text-xs font-medium border ${config.color}`}>
-              {config.label}
-            </span>
-          </div>
+          <h1 className="text-2xl font-bold text-white mb-2">{sessionData.title}</h1>
           <div className="flex items-center gap-4 text-sm text-gray-400">
             <span className="flex items-center gap-1">
               <MapPin className="w-4 h-4" />
-              {session.location}
+              {sessionData.location}
             </span>
-            <span>•</span>
-            <span>Speech rate: {config.rateLabel}</span>
           </div>
-          <p className="text-gray-500 text-sm mt-2">{session.description}</p>
+          <p className="text-gray-500 text-sm mt-2">{sessionData.description}</p>
         </div>
 
         {/* Progress */}
         <div className="mb-8">
           <div className="flex justify-between text-sm text-gray-400 mb-2">
-            <span>Sentence {currentIndex + 1} of {session.sentences.length}</span>
+            <span>Sentence {currentIndex + 1} of {sessionData.sentences.length}</span>
             <span>{correctCount} correct</span>
           </div>
           <div className="h-2 bg-[#334155] rounded-full overflow-hidden">
             <div
               className="h-full bg-gradient-to-r from-blue-500 to-cyan-500 transition-all"
-              style={{ width: `${((currentIndex) / session.sentences.length) * 100}%` }}
+              style={{ width: `${((currentIndex) / sessionData.sentences.length) * 100}%` }}
             />
           </div>
         </div>
@@ -296,7 +323,6 @@ export default function ListenRepeatSessionPage() {
                 <Volume2 className="w-12 h-12 text-blue-400" />
               </div>
               <p className="text-white text-lg">Listen carefully...</p>
-              <p className="text-gray-500 text-sm mt-2">Speech rate: {config.rateLabel}</p>
             </div>
           )}
 
@@ -331,7 +357,7 @@ export default function ListenRepeatSessionPage() {
                   </button>
                 ) : (
                   <button
-                    onClick={checkAnswer}
+                    onClick={evaluateWithAI}
                     className="px-6 py-3 bg-green-500 hover:bg-green-600 rounded-lg transition-colors"
                   >
                     Done Speaking
@@ -340,9 +366,19 @@ export default function ListenRepeatSessionPage() {
               </div>
               {!sttSupported && (
                 <p className="text-yellow-400 text-sm mt-4">
-                  Voice recognition not supported. Type your response instead.
+                  Voice recognition not supported in your browser.
                 </p>
               )}
+            </div>
+          )}
+
+          {/* Phase: Evaluating */}
+          {phase === "evaluating" && (
+            <div className="text-center">
+              <div className="inline-flex p-6 rounded-full bg-purple-500/20 mb-6">
+                <Loader2 className="w-12 h-12 text-purple-400 animate-spin" />
+              </div>
+              <p className="text-white text-lg">AI is evaluating your pronunciation...</p>
             </div>
           )}
 
@@ -359,21 +395,24 @@ export default function ListenRepeatSessionPage() {
                 </div>
               )}
 
-              <p className={`text-xl font-semibold mb-4 ${
+              <p className={`text-xl font-semibold mb-2 ${
                 results[currentIndex]?.correct ? "text-green-400" : "text-red-400"
               }`}>
-                {results[currentIndex]?.correct ? "Great job!" : "Keep practicing!"}
+                Score: {results[currentIndex]?.score || 0}/10
               </p>
 
-              <div className="bg-[#0f172a] rounded-lg p-4 mb-4">
+              <div className="bg-[#0f172a] rounded-lg p-4 mb-4 text-left">
                 <p className="text-sm text-gray-400 mb-1">Target sentence:</p>
                 <p className="text-white">{currentSentence}</p>
               </div>
 
-              {results[currentIndex]?.userText && (
-                <div className="bg-[#0f172a] rounded-lg p-4 mb-6">
-                  <p className="text-sm text-gray-400 mb-1">You said:</p>
-                  <p className="text-white">{results[currentIndex].userText}</p>
+              {/* AI Feedback */}
+              {currentFeedback && (
+                <div className="bg-[#0f172a] rounded-lg p-4 mb-6 text-left">
+                  <p className="text-sm text-blue-400 mb-2 font-medium">AI Feedback:</p>
+                  <div className="text-sm text-gray-300 whitespace-pre-wrap">
+                    {currentFeedback}
+                  </div>
                 </div>
               )}
 
@@ -381,8 +420,8 @@ export default function ListenRepeatSessionPage() {
                 <button
                   onClick={() => {
                     setPhase("ready");
-                    setHasPlayed(false);
                     setTranscript("");
+                    setCurrentFeedback("");
                     setResults(results.slice(0, -1));
                   }}
                   className="flex items-center gap-2 px-6 py-3 bg-[#334155] hover:bg-[#475569] rounded-lg transition-colors"

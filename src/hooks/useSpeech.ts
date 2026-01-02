@@ -51,9 +51,9 @@ declare global {
 export type SpeechRate = "slow" | "normal" | "fast";
 
 const SPEECH_RATES: Record<SpeechRate, number> = {
-  slow: 0.7,    // Beginner - slower pace for better comprehension
-  normal: 0.9,  // Intermediate - standard conversational speed
-  fast: 1.1,    // Advanced - faster pace to challenge learners
+  slow: 0.8,
+  normal: 0.9,  // TOEFL standard speed
+  fast: 1.0,
 };
 
 export function useTextToSpeech() {

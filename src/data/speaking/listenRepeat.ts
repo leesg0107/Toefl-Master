@@ -3,20 +3,15 @@ export interface ListenRepeatSession {
   title: string;
   location: string;
   description: string;
-  difficulty: "beginner" | "intermediate" | "advanced";
   sentences: string[];
 }
 
 export const listenRepeatSessions: ListenRepeatSession[] = [
-  // =============================================
-  // BEGINNER LEVEL - Simple sentences about locations
-  // =============================================
   {
     id: "classroom-basics-1",
     title: "Classroom Layout",
     location: "Classroom",
     description: "Learn basic vocabulary about classroom objects and their locations.",
-    difficulty: "beginner",
     sentences: [
       "The whiteboard is at the front of the room.",
       "The printer is next to the teacher's desk.",
@@ -32,7 +27,6 @@ export const listenRepeatSessions: ListenRepeatSession[] = [
     title: "Library Tour",
     location: "University Library",
     description: "Learn about different areas and resources in the library.",
-    difficulty: "beginner",
     sentences: [
       "The reference desk is near the entrance.",
       "Computers are on the first floor.",
@@ -48,7 +42,6 @@ export const listenRepeatSessions: ListenRepeatSession[] = [
     title: "Computer Lab",
     location: "Computer Lab",
     description: "Learn about computer lab facilities and equipment.",
-    difficulty: "beginner",
     sentences: [
       "Each desk has a computer and monitor.",
       "Headphones are in the drawer.",
@@ -64,7 +57,6 @@ export const listenRepeatSessions: ListenRepeatSession[] = [
     title: "Science Lab Orientation",
     location: "Science Laboratory",
     description: "Learn about laboratory equipment and safety stations.",
-    difficulty: "beginner",
     sentences: [
       "Microscopes are stored in the cabinet.",
       "The safety shower is in the corner.",
@@ -75,16 +67,11 @@ export const listenRepeatSessions: ListenRepeatSession[] = [
       "Chemical supplies are in the locked cabinet."
     ]
   },
-
-  // =============================================
-  // INTERMEDIATE LEVEL - Instructions and procedures
-  // =============================================
   {
     id: "classroom-instructions-1",
     title: "Classroom Procedures",
     location: "Classroom",
     description: "Learn instructions about using classroom equipment.",
-    difficulty: "intermediate",
     sentences: [
       "Please turn off your phones before class begins.",
       "Use the projector remote to change slides.",
@@ -100,7 +87,6 @@ export const listenRepeatSessions: ListenRepeatSession[] = [
     title: "Library Services",
     location: "University Library",
     description: "Learn about library rules and services.",
-    difficulty: "intermediate",
     sentences: [
       "Books can be borrowed for three weeks at a time.",
       "You need your student ID to use the printers.",
@@ -116,7 +102,6 @@ export const listenRepeatSessions: ListenRepeatSession[] = [
     title: "Lab Safety Rules",
     location: "Science Laboratory",
     description: "Learn important safety procedures in the laboratory.",
-    difficulty: "intermediate",
     sentences: [
       "Always wear safety goggles when handling chemicals.",
       "Wash your hands before leaving the laboratory.",
@@ -132,7 +117,6 @@ export const listenRepeatSessions: ListenRepeatSession[] = [
     title: "Lecture Hall Guide",
     location: "Lecture Hall",
     description: "Learn about lecture hall facilities and equipment.",
-    difficulty: "intermediate",
     sentences: [
       "The microphone switch is on the podium.",
       "Adjust the screen using the control panel on the wall.",
@@ -143,24 +127,19 @@ export const listenRepeatSessions: ListenRepeatSession[] = [
       "Questions should be saved for the end of class."
     ]
   },
-
-  // =============================================
-  // ADVANCED LEVEL - Complex instructions and explanations
-  // =============================================
   {
     id: "research-lab-1",
     title: "Research Lab Procedures",
     location: "Research Laboratory",
     description: "Learn complex procedures for conducting research.",
-    difficulty: "advanced",
     sentences: [
-      "All experiments must be documented in your lab notebook before you begin.",
+      "All experiments must be documented in your lab notebook.",
       "The centrifuge requires a balanced load to operate safely.",
-      "Store temperature-sensitive samples in the refrigerator labeled with your name.",
-      "Equipment reservations should be made through the online booking system.",
-      "Dispose of chemical waste in the designated containers under the fume hood.",
+      "Store samples in the refrigerator labeled with your name.",
+      "Equipment reservations are made through the online system.",
+      "Dispose of chemical waste in the designated containers.",
       "The electron microscope is available by appointment only.",
-      "Submit your research protocols to the supervisor for approval before starting."
+      "Submit your research protocols to the supervisor for approval."
     ]
   },
   {
@@ -168,15 +147,14 @@ export const listenRepeatSessions: ListenRepeatSession[] = [
     title: "Academic Advising Office",
     location: "Academic Advising Center",
     description: "Learn about academic advising services and procedures.",
-    difficulty: "advanced",
     sentences: [
-      "Schedule an appointment with your advisor before course registration opens.",
-      "Bring your unofficial transcript to discuss your degree requirements.",
+      "Schedule an appointment before course registration opens.",
+      "Bring your unofficial transcript to discuss requirements.",
       "Major declaration forms are available at the front desk.",
-      "Credit transfer requests must be submitted with official documentation.",
-      "The deadline for adding or dropping courses is posted on the registrar's website.",
-      "Academic probation students must meet with an advisor each semester.",
-      "Graduation applications should be filed at least one semester in advance."
+      "Credit transfer requests require official documentation.",
+      "The deadline for adding courses is on the website.",
+      "Students on probation must meet with an advisor.",
+      "Graduation applications should be filed in advance."
     ]
   },
   {
@@ -184,15 +162,14 @@ export const listenRepeatSessions: ListenRepeatSession[] = [
     title: "Group Study Session",
     location: "Study Room",
     description: "Learn phrases for collaborative study and group projects.",
-    difficulty: "advanced",
     sentences: [
-      "Let's divide the research topics among ourselves to save time.",
-      "Can you share your notes from the lecture we missed last week?",
-      "The presentation slides need to be submitted by Friday afternoon.",
-      "We should meet again before the exam to review the main concepts.",
-      "Each person should prepare three questions for the study guide.",
-      "The professor said this chapter will be heavily tested on the final.",
-      "Make sure to cite all sources properly in the bibliography section."
+      "Let's divide the research topics among ourselves.",
+      "Can you share your notes from last week's lecture?",
+      "The presentation slides are due by Friday afternoon.",
+      "We should meet again before the exam to review.",
+      "Each person should prepare three questions.",
+      "This chapter will be heavily tested on the final.",
+      "Make sure to cite all sources in the bibliography."
     ]
   },
   {
@@ -200,35 +177,29 @@ export const listenRepeatSessions: ListenRepeatSession[] = [
     title: "Office Hours",
     location: "Professor's Office",
     description: "Learn how to communicate during office hours.",
-    difficulty: "advanced",
     sentences: [
-      "I was hoping you could clarify the assignment requirements.",
+      "Could you clarify the assignment requirements?",
       "Could you recommend additional readings on this topic?",
-      "I'm having trouble understanding the concept we covered in class.",
-      "Would it be possible to get an extension on the research paper?",
-      "I noticed my grade for the midterm seems lower than expected.",
-      "Are there any opportunities for undergraduate research in your lab?",
-      "I would appreciate feedback on my thesis proposal when you have time."
+      "I'm having trouble understanding this concept.",
+      "Would it be possible to get an extension?",
+      "I have a question about my midterm grade.",
+      "Are there research opportunities in your lab?",
+      "I would appreciate feedback on my proposal."
     ]
   },
-
-  // =============================================
-  // ADDITIONAL ACADEMIC SCENARIOS
-  // =============================================
   {
     id: "writing-center-1",
     title: "Writing Center",
     location: "Writing Center",
     description: "Learn about writing center services and appointments.",
-    difficulty: "intermediate",
     sentences: [
       "Appointments can be made up to a week in advance.",
       "Bring a draft of your paper to the session.",
       "Tutors can help with organization and grammar.",
       "Sessions are limited to thirty minutes each.",
       "Walk-in appointments are available when tutors are free.",
-      "The center specializes in academic and research writing.",
-      "Feedback is provided but tutors do not edit your work."
+      "The center specializes in academic writing.",
+      "Tutors provide feedback but do not edit your work."
     ]
   },
   {
@@ -236,15 +207,14 @@ export const listenRepeatSessions: ListenRepeatSession[] = [
     title: "Registrar's Office",
     location: "Registrar's Office",
     description: "Learn about registration and academic records.",
-    difficulty: "advanced",
     sentences: [
-      "Official transcripts can be ordered through the student portal.",
-      "Enrollment verification letters are processed within three business days.",
-      "Course conflicts must be resolved before the add-drop deadline.",
-      "Students on academic hold cannot register for future semesters.",
-      "Degree audits are updated at the beginning of each semester.",
-      "Name change requests require official legal documentation.",
-      "Transfer credit evaluations take approximately two weeks to process."
+      "Official transcripts can be ordered through the portal.",
+      "Enrollment letters are processed within three days.",
+      "Course conflicts must be resolved before the deadline.",
+      "Students on hold cannot register for future semesters.",
+      "Degree audits are updated at the start of each semester.",
+      "Name change requests require legal documentation.",
+      "Transfer credit evaluations take about two weeks."
     ]
   },
   {
@@ -252,7 +222,6 @@ export const listenRepeatSessions: ListenRepeatSession[] = [
     title: "Tutoring Center",
     location: "Academic Support Center",
     description: "Learn about tutoring services and resources.",
-    difficulty: "beginner",
     sentences: [
       "Tutoring is free for all enrolled students.",
       "Math tutors are available every afternoon.",
@@ -264,11 +233,6 @@ export const listenRepeatSessions: ListenRepeatSession[] = [
     ]
   }
 ];
-
-// Helper function to get sessions by difficulty
-export function getSessionsByDifficulty(difficulty: "beginner" | "intermediate" | "advanced") {
-  return listenRepeatSessions.filter(session => session.difficulty === difficulty);
-}
 
 // Helper function to get all unique locations
 export function getUniqueLocations() {
