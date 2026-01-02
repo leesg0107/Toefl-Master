@@ -22,7 +22,6 @@ export async function POST(request: NextRequest) {
 
     // Get access token from Authorization header
     const authHeader = request.headers.get("authorization");
-    console.log("Auth header present:", !!authHeader);
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return NextResponse.json(
@@ -32,7 +31,6 @@ export async function POST(request: NextRequest) {
     }
 
     const accessToken = authHeader.substring(7); // Remove "Bearer " prefix
-    console.log("Access token length:", accessToken.length);
 
     // Create Supabase client and set the session manually
     const supabase = createClient(supabaseUrl, supabaseAnonKey, {
@@ -46,10 +44,7 @@ export async function POST(request: NextRequest) {
     // Get the user using the token
     const { data: { user }, error: authError } = await supabase.auth.getUser(accessToken);
 
-    console.log("Auth result:", { user: !!user, error: authError?.message });
-
     if (authError || !user) {
-      console.error("Auth error:", authError);
       return NextResponse.json(
         { error: "Please sign in to upgrade to Premium." },
         { status: 401 }
@@ -58,7 +53,6 @@ export async function POST(request: NextRequest) {
 
     const userId = user.id;
     const userEmail = user.email;
-    console.log("User authenticated:", { userId, userEmail });
 
     // Check if Lemon Squeezy is configured
     if (!LEMONSQUEEZY_API_KEY || !LEMONSQUEEZY_STORE_ID || !LEMONSQUEEZY_VARIANT_ID) {
@@ -73,13 +67,20 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    console.log("Lemon Squeezy config:", {
-      storeId: LEMONSQUEEZY_STORE_ID,
-      variantId: LEMONSQUEEZY_VARIANT_ID,
-    });
+    // SECURITY: Validate origin to prevent open redirect attacks
+    const ALLOWED_ORIGINS = [
+      "https://toeflmaster.org",
+      "https://www.toeflmaster.org",
+      process.env.NEXT_PUBLIC_APP_URL,
+    ].filter(Boolean);
 
-    // Get redirect URL
-    const origin = request.headers.get("origin") || process.env.NEXT_PUBLIC_APP_URL || "https://toeflmaster.org";
+    const requestOrigin = request.headers.get("origin");
+    const isAllowedOrigin = requestOrigin && ALLOWED_ORIGINS.some(
+      allowed => requestOrigin === allowed || requestOrigin.startsWith(allowed + "/")
+    );
+
+    // Use validated origin or fallback to safe default
+    const origin = isAllowedOrigin ? requestOrigin : "https://toeflmaster.org";
 
     const requestBody = {
       data: {
@@ -117,8 +118,6 @@ export async function POST(request: NextRequest) {
         },
       },
     };
-
-    console.log("Lemon Squeezy request body:", JSON.stringify(requestBody, null, 2));
 
     // Create Lemon Squeezy checkout session
     const response = await fetch("https://api.lemonsqueezy.com/v1/checkouts", {
