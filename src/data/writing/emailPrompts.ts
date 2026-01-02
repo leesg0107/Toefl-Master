@@ -269,5 +269,227 @@ Sincerely,
       "Ask if a waiver is possible and what you need to provide"
     ],
     isPremium: true
+  },
+
+  // === NEW FREE PROMPTS ===
+  {
+    id: "email-19",
+    title: "Library Fine Dispute",
+    instructions: "You will read some information and use the information to write an email. You will have 7 minutes to write the email.",
+    situation: "You received a notice that you owe $45 in library fines for a book you believe you returned on time. The library records show it was returned two weeks late, but you have a receipt showing you returned it before the due date.",
+    recipientEmail: "circulation@universitylibrary.edu",
+    suggestedSubject: "Dispute regarding overdue fine",
+    requiredPoints: [
+      "Explain the situation with the book in question",
+      "Provide evidence that you returned the book on time",
+      "Request that the fine be waived"
+    ]
+  },
+  {
+    id: "email-20",
+    title: "Scholarship Application Inquiry",
+    instructions: "You will read some information and use the information to write an email. You will have 7 minutes to write the email.",
+    situation: "You are applying for a merit-based scholarship at your university. The application requirements mention a 'community involvement essay' but don't specify the length or format. The deadline is next week.",
+    recipientEmail: "scholarships@financialaid.edu",
+    suggestedSubject: "Question about scholarship essay requirements",
+    requiredPoints: [
+      "Identify which scholarship you are applying for",
+      "Ask specific questions about the essay requirements",
+      "Confirm the submission deadline and process"
+    ]
+  },
+  {
+    id: "email-21",
+    title: "Roommate Conflict Mediation",
+    instructions: "You will read some information and use the information to write an email. You will have 7 minutes to write the email.",
+    situation: "You and your roommate have been having disagreements about noise levels and cleanliness in your shared dorm room. You have tried talking to them directly, but nothing has changed. You want to request help from the housing office.",
+    recipientEmail: "housing@residencelife.edu",
+    suggestedSubject: "Request for roommate mediation",
+    requiredPoints: [
+      "Describe the ongoing issues briefly",
+      "Explain what you have already tried to resolve them",
+      "Ask about available mediation or room change options"
+    ]
+  },
+  {
+    id: "email-22",
+    title: "Lab Equipment Reservation",
+    instructions: "You will read some information and use the information to write an email. You will have 7 minutes to write the email.",
+    situation: "You need to use specialized microscopy equipment in the biology department for your research project. The equipment requires training and advance booking, and you need it for several sessions over the next month.",
+    recipientEmail: "labmanager@biology.edu",
+    suggestedSubject: "Equipment reservation request - Electron Microscope",
+    requiredPoints: [
+      "Explain your research project and equipment needs",
+      "Ask about training requirements",
+      "Request information about booking available time slots"
+    ]
+  },
+  {
+    id: "email-23",
+    title: "Tutoring Service Registration",
+    instructions: "You will read some information and use the information to write an email. You will have 7 minutes to write the email.",
+    situation: "You want to become a peer tutor for the campus tutoring center. You heard they are looking for tutors in mathematics, which is your major. You have a high GPA and experience helping classmates.",
+    recipientEmail: "tutoring@academicsupport.edu",
+    suggestedSubject: "Interest in becoming a math tutor",
+    requiredPoints: [
+      "Express your interest in becoming a tutor",
+      "Describe your qualifications and relevant experience",
+      "Ask about the application process and requirements"
+    ]
+  },
+  {
+    id: "email-24",
+    title: "Club Funding Request",
+    instructions: "You will read some information and use the information to write an email. You will have 7 minutes to write the email.",
+    situation: "You are the president of the Environmental Club. Your club wants to organize a campus-wide recycling awareness event, but you need funding for materials, refreshments, and promotional items.",
+    recipientEmail: "studentactivities@campus.edu",
+    suggestedSubject: "Funding request for Earth Day event",
+    requiredPoints: [
+      "Describe the event you are planning",
+      "Explain what the funding will be used for",
+      "Ask about the funding application process and deadline"
+    ]
+  },
+
+  // === NEW PREMIUM PROMPTS ===
+  {
+    id: "email-25",
+    title: "Thesis Deadline Extension",
+    instructions: "You will read some information and use the information to write an email. You will have 7 minutes to write the email.",
+    situation: "Your senior thesis is due in two weeks, but you have encountered unexpected problems with your research data. You need to redo part of your analysis, which will require more time. You want to request an extension from your thesis advisor.",
+    recipientEmail: "advisor@department.edu",
+    suggestedSubject: "Request for thesis deadline extension",
+    requiredPoints: [
+      "Explain the research problems you encountered",
+      "Describe what additional work needs to be done",
+      "Propose a new timeline and request approval"
+    ],
+    isPremium: true
+  },
+  {
+    id: "email-26",
+    title: "Campus Parking Permit Issue",
+    instructions: "You will read some information and use the information to write an email. You will have 7 minutes to write the email.",
+    situation: "You applied for a student parking permit three weeks ago and paid the fee, but you still haven't received your permit. Meanwhile, you received a parking ticket for not displaying a valid permit in the student lot.",
+    recipientEmail: "parking@transportation.edu",
+    suggestedSubject: "Missing parking permit and ticket dispute",
+    requiredPoints: [
+      "Explain when you applied and paid for the permit",
+      "Describe the ticket you received unfairly",
+      "Request the permit be sent and the ticket be canceled"
+    ],
+    isPremium: true
+  },
+  {
+    id: "email-27",
+    title: "Academic Integrity Meeting",
+    instructions: "You will read some information and use the information to write an email. You will have 7 minutes to write the email.",
+    situation: "You received a notice about an academic integrity violation regarding a group project. You believe there was a misunderstanding because your group properly cited all sources. You need to schedule a meeting to explain your case.",
+    recipientEmail: "academicintegrity@dean.edu",
+    suggestedSubject: "Request for meeting regarding integrity notice",
+    requiredPoints: [
+      "Acknowledge the notice you received",
+      "Briefly explain why you believe there was a misunderstanding",
+      "Request a meeting to present your evidence"
+    ],
+    isPremium: true
+  },
+  {
+    id: "email-28",
+    title: "Visa Document Request",
+    instructions: "You will read some information and use the information to write an email. You will have 7 minutes to write the email.",
+    situation: "As an international student, you need an official enrollment verification letter for your visa renewal application. The letter must include specific information such as your expected graduation date and full-time enrollment status.",
+    recipientEmail: "isss@internationalstudents.edu",
+    suggestedSubject: "Enrollment verification letter for visa renewal",
+    requiredPoints: [
+      "Explain why you need the letter",
+      "Specify what information must be included",
+      "Ask about the processing time and pickup options"
+    ],
+    isPremium: true
+  },
+  {
+    id: "email-29",
+    title: "Career Counseling Appointment",
+    instructions: "You will read some information and use the information to write an email. You will have 7 minutes to write the email.",
+    situation: "You are a junior considering whether to pursue graduate school or enter the job market after graduation. You want to meet with a career counselor to discuss your options and get advice on preparing for either path.",
+    recipientEmail: "careers@careercenter.edu",
+    suggestedSubject: "Appointment request for career planning",
+    requiredPoints: [
+      "Describe your current situation and major",
+      "Explain what you hope to discuss in the meeting",
+      "Ask about available appointment times"
+    ],
+    isPremium: true
+  },
+  {
+    id: "email-30",
+    title: "Thesis Committee Request",
+    instructions: "You will read some information and use the information to write an email. You will have 7 minutes to write the email.",
+    situation: "You are beginning your master's thesis and need to form a committee. You want to ask a professor from a different department to serve as an outside committee member because their expertise relates to your research topic.",
+    recipientEmail: "professor.smith@otherdepartment.edu",
+    suggestedSubject: "Invitation to serve on thesis committee",
+    requiredPoints: [
+      "Introduce yourself and your research topic",
+      "Explain why you are reaching out to them specifically",
+      "Ask if they would be willing to serve on your committee"
+    ],
+    isPremium: true
+  },
+  {
+    id: "email-31",
+    title: "After-Hours Lab Access",
+    instructions: "You will read some information and use the information to write an email. You will have 7 minutes to write the email.",
+    situation: "You need to complete a programming project that requires specialized software only available in the computer lab. The lab closes at 6 PM, but you have classes until 5:30 PM and need more time. You want to request after-hours access.",
+    recipientEmail: "labsecurity@computerscience.edu",
+    suggestedSubject: "Request for after-hours lab access",
+    requiredPoints: [
+      "Explain your project and the software you need",
+      "Describe why regular hours are insufficient",
+      "Ask about the procedure for obtaining after-hours access"
+    ],
+    isPremium: true
+  },
+  {
+    id: "email-32",
+    title: "Study Abroad Credit Transfer",
+    instructions: "You will read some information and use the information to write an email. You will have 7 minutes to write the email.",
+    situation: "You are returning from a semester abroad and want to ensure the courses you took will count toward your major requirements. You have the course syllabi and transcripts ready but are unsure about the credit transfer process.",
+    recipientEmail: "registrar@academics.edu",
+    suggestedSubject: "Credit transfer inquiry for study abroad courses",
+    requiredPoints: [
+      "Mention your study abroad program and courses taken",
+      "Ask what documents are needed for credit transfer",
+      "Inquire about how long the process takes"
+    ],
+    isPremium: true
+  },
+  {
+    id: "email-33",
+    title: "Guest Speaker Invitation",
+    instructions: "You will read some information and use the information to write an email. You will have 7 minutes to write the email.",
+    situation: "Your academic department is organizing a seminar series, and your professor asked you to invite a prominent researcher to give a talk. You need to write a professional email explaining the event and inviting them to speak.",
+    recipientEmail: "researcher@otheruniversity.edu",
+    suggestedSubject: "Invitation to speak at departmental seminar",
+    requiredPoints: [
+      "Introduce yourself and your department",
+      "Describe the seminar series and proposed date",
+      "Explain what topics you hope they would cover"
+    ],
+    isPremium: true
+  },
+  {
+    id: "email-34",
+    title: "Course Feedback Follow-up",
+    instructions: "You will read some information and use the information to write an email. You will have 7 minutes to write the email.",
+    situation: "You recently completed a course that you really enjoyed, and you want to thank the professor and ask if they offer any advanced courses or research opportunities related to the subject.",
+    recipientEmail: "professor.jones@department.edu",
+    suggestedSubject: "Thank you and inquiry about further opportunities",
+    requiredPoints: [
+      "Express appreciation for the course and what you learned",
+      "Ask about related advanced courses or seminars",
+      "Inquire about research or independent study opportunities"
+    ],
+    isPremium: true
   }
 ];

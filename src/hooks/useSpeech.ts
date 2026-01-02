@@ -47,6 +47,15 @@ declare global {
   }
 }
 
+// Speech rate options for different difficulty levels
+export type SpeechRate = "slow" | "normal" | "fast";
+
+const SPEECH_RATES: Record<SpeechRate, number> = {
+  slow: 0.7,    // Beginner - slower pace for better comprehension
+  normal: 0.9,  // Intermediate - standard conversational speed
+  fast: 1.1,    // Advanced - faster pace to challenge learners
+};
+
 export function useTextToSpeech() {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isSupported, setIsSupported] = useState(true);
@@ -58,7 +67,7 @@ export function useTextToSpeech() {
     }
   }, []);
 
-  const speak = useCallback((text: string, onEnd?: () => void) => {
+  const speak = useCallback((text: string, onEnd?: () => void, rate: SpeechRate = "normal") => {
     if (!isSupported || typeof window === "undefined") return;
 
     // Cancel any ongoing speech
@@ -66,7 +75,7 @@ export function useTextToSpeech() {
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = "en-US";
-    utterance.rate = 0.9;
+    utterance.rate = SPEECH_RATES[rate];
     utterance.pitch = 1;
 
     utterance.onstart = () => setIsSpeaking(true);
