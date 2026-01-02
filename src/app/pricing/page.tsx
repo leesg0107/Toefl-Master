@@ -29,7 +29,7 @@ const plans = [
   },
   {
     name: "Premium",
-    price: "₩5,000",
+    price: "₩9,900",
     period: "month",
     description: "Get AI-powered coaching",
     features: [
