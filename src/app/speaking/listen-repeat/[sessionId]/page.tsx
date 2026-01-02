@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -12,14 +12,39 @@ import {
   XCircle,
   RotateCcw,
   ArrowRight,
-  Trophy
+  Trophy,
+  MapPin
 } from "lucide-react";
 import { listenRepeatSessions } from "@/data/speaking/listenRepeat";
-import { useTextToSpeech, useSpeechRecognition } from "@/hooks/useSpeech";
+import { useTextToSpeech, useSpeechRecognition, SpeechRate } from "@/hooks/useSpeech";
+
+// Map difficulty to speech rate
+const difficultyToRate: Record<string, SpeechRate> = {
+  beginner: "slow",
+  intermediate: "normal",
+  advanced: "fast",
+};
+
+const difficultyConfig = {
+  beginner: {
+    label: "Beginner",
+    color: "bg-green-500/20 text-green-400 border-green-500/30",
+    rateLabel: "Slow",
+  },
+  intermediate: {
+    label: "Intermediate",
+    color: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
+    rateLabel: "Normal",
+  },
+  advanced: {
+    label: "Advanced",
+    color: "bg-red-500/20 text-red-400 border-red-500/30",
+    rateLabel: "Fast",
+  },
+};
 
 export default function ListenRepeatSessionPage() {
   const params = useParams();
-  const router = useRouter();
   const sessionId = params.sessionId as string;
 
   const session = listenRepeatSessions.find((s) => s.id === sessionId);
@@ -55,6 +80,8 @@ export default function ListenRepeatSessionPage() {
   const currentSentence = session.sentences[currentIndex];
   const isComplete = currentIndex >= session.sentences.length;
   const correctCount = results.filter((r) => r.correct).length;
+  const speechRate = difficultyToRate[session.difficulty];
+  const config = difficultyConfig[session.difficulty];
 
   const playSentence = () => {
     setPhase("listening");
@@ -65,7 +92,7 @@ export default function ListenRepeatSessionPage() {
       setTimeout(() => {
         startListening();
       }, 500);
-    });
+    }, speechRate);
   };
 
   const checkAnswer = () => {
@@ -106,13 +133,14 @@ export default function ListenRepeatSessionPage() {
     setTranscript("");
   };
 
-  // Stop recording after 5 seconds
+  // Stop recording after 5 seconds (8 seconds for advanced)
   useEffect(() => {
     let timeout: NodeJS.Timeout;
+    const recordingTime = session.difficulty === "advanced" ? 8000 : 5000;
     if (isListening) {
       timeout = setTimeout(() => {
         checkAnswer();
-      }, 5000);
+      }, recordingTime);
     }
     return () => clearTimeout(timeout);
   }, [isListening]);
@@ -124,7 +152,14 @@ export default function ListenRepeatSessionPage() {
           <div className="p-6 rounded-2xl bg-[#1e293b] border border-[#334155]">
             <Trophy className="w-16 h-16 text-yellow-400 mx-auto mb-4" />
             <h1 className="text-3xl font-bold text-white mb-2">Session Complete!</h1>
-            <p className="text-gray-400 mb-6">{session.title}</p>
+            <p className="text-gray-400 mb-2">{session.title}</p>
+            <div className="flex items-center justify-center gap-2 mb-6">
+              <MapPin className="w-4 h-4 text-gray-500" />
+              <span className="text-gray-500">{session.location}</span>
+              <span className={`px-2 py-0.5 rounded text-xs font-medium border ${config.color}`}>
+                {config.label}
+              </span>
+            </div>
 
             <div className="flex justify-center gap-8 mb-8">
               <div className="text-center">
@@ -195,8 +230,21 @@ export default function ListenRepeatSessionPage() {
             <ArrowLeft className="w-4 h-4" />
             Back
           </Link>
-          <h1 className="text-2xl font-bold text-white mb-2">{session.title}</h1>
-          <p className="text-gray-400 text-sm">{session.scenario}</p>
+          <div className="flex items-center gap-3 mb-2">
+            <h1 className="text-2xl font-bold text-white">{session.title}</h1>
+            <span className={`px-2 py-0.5 rounded text-xs font-medium border ${config.color}`}>
+              {config.label}
+            </span>
+          </div>
+          <div className="flex items-center gap-4 text-sm text-gray-400">
+            <span className="flex items-center gap-1">
+              <MapPin className="w-4 h-4" />
+              {session.location}
+            </span>
+            <span>•</span>
+            <span>Speech rate: {config.rateLabel}</span>
+          </div>
+          <p className="text-gray-500 text-sm mt-2">{session.description}</p>
         </div>
 
         {/* Progress */}
@@ -215,7 +263,9 @@ export default function ListenRepeatSessionPage() {
 
         {/* Main Card */}
         <div className="p-8 rounded-2xl bg-[#1e293b] border border-[#334155]">
-          <p className="text-sm text-gray-400 mb-6">{session.instruction}</p>
+          <p className="text-sm text-gray-400 mb-6">
+            Listen carefully and repeat the sentence exactly as you hear it.
+          </p>
 
           {/* Phase: Ready */}
           {phase === "ready" && (
@@ -246,6 +296,7 @@ export default function ListenRepeatSessionPage() {
                 <Volume2 className="w-12 h-12 text-blue-400" />
               </div>
               <p className="text-white text-lg">Listen carefully...</p>
+              <p className="text-gray-500 text-sm mt-2">Speech rate: {config.rateLabel}</p>
             </div>
           )}
 
