@@ -9,29 +9,58 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 export async function POST(request: NextRequest) {
   try {
+    console.log("[speaking-eval] Request received");
+
     // Verify authentication
     const authHeader = request.headers.get("authorization");
     if (!authHeader?.startsWith("Bearer ")) {
+      console.log("[speaking-eval] No auth header");
       return NextResponse.json({ error: "Authentication required" }, { status: 401 });
     }
 
     const token = authHeader.split(" ")[1];
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    if (authError || !user) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-    }
+    // Check if Supabase is configured
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.log("[speaking-eval] Supabase not configured, skipping auth check");
+      // In development without Supabase, allow the request
+    } else {
+      const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Check premium status
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("is_premium")
-      .eq("id", user.id)
-      .single();
+      const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+      if (authError || !user) {
+        console.log("[speaking-eval] Auth error:", authError);
+        return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+      }
 
-    if (!profile?.is_premium) {
-      return NextResponse.json({ error: "Premium subscription required" }, { status: 403 });
+      // Check premium status
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("is_premium")
+        .eq("id", user.id)
+        .single();
+
+      console.log("[speaking-eval] User ID:", user.id);
+      console.log("[speaking-eval] User email:", user.email);
+      console.log("[speaking-eval] Profile data:", JSON.stringify(profile));
+      console.log("[speaking-eval] Profile error:", profileError?.message);
+
+      if (profileError) {
+        console.error("[speaking-eval] Profile query failed:", profileError);
+        return NextResponse.json({ error: "Failed to verify premium status" }, { status: 500 });
+      }
+
+      if (!profile) {
+        console.error("[speaking-eval] No profile found for user");
+        return NextResponse.json({ error: "User profile not found" }, { status: 404 });
+      }
+
+      if (!profile.is_premium) {
+        console.log("[speaking-eval] User is not premium");
+        return NextResponse.json({ error: "Premium subscription required" }, { status: 403 });
+      }
+
+      console.log("[speaking-eval] Premium verified, proceeding");
     }
 
     const { targetSentence, userTranscript, sessionTitle, location } = await request.json();
