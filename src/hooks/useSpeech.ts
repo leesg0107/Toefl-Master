@@ -105,6 +105,7 @@ export function useSpeechRecognition() {
   const [isSupported, setIsSupported] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const recognitionRef = useRef<ISpeechRecognition | null>(null);
+  const transcriptRef = useRef<string>("");  // Sync ref for immediate access
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -137,7 +138,8 @@ export function useSpeechRecognition() {
 
         const currentTranscript = finalTranscript || interimTranscript;
         console.log("[SpeechRecognition] Transcript:", currentTranscript);
-        setTranscript(currentTranscript);
+        transcriptRef.current = currentTranscript;  // Update ref immediately (sync)
+        setTranscript(currentTranscript);  // Update state (async)
         setError(null);
       };
 
@@ -180,6 +182,7 @@ export function useSpeechRecognition() {
       return;
     }
     console.log("[SpeechRecognition] Starting...");
+    transcriptRef.current = "";  // Reset ref
     setTranscript("");
     setError(null);
     setIsListening(true);
@@ -191,6 +194,11 @@ export function useSpeechRecognition() {
     }
   }, [isSupported]);
 
+  // Get the current transcript value synchronously (for use before async operations)
+  const getTranscript = useCallback(() => {
+    return transcriptRef.current;
+  }, []);
+
   const stopListening = useCallback(() => {
     if (recognitionRef.current) {
       console.log("[SpeechRecognition] Stopping...");
@@ -199,7 +207,7 @@ export function useSpeechRecognition() {
     }
   }, []);
 
-  return { startListening, stopListening, isListening, transcript, isSupported, setTranscript, error };
+  return { startListening, stopListening, isListening, transcript, isSupported, setTranscript, getTranscript, error };
 }
 
 // Timer hook
