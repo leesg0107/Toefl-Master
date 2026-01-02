@@ -33,17 +33,16 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "Invalid token" }, { status: 401 });
       }
 
-      // Check premium status
+      // Check premium status (same logic as frontend AuthContext)
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
-        .select("is_premium")
+        .select("subscription_tier, subscription_expires_at")
         .eq("id", user.id)
         .single();
 
       console.log("[speaking-eval] User ID:", user.id);
       console.log("[speaking-eval] User email:", user.email);
       console.log("[speaking-eval] Profile data:", JSON.stringify(profile));
-      console.log("[speaking-eval] Profile error:", profileError?.message);
 
       if (profileError) {
         console.error("[speaking-eval] Profile query failed:", profileError);
@@ -55,8 +54,12 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "User profile not found" }, { status: 404 });
       }
 
-      if (!profile.is_premium) {
-        console.log("[speaking-eval] User is not premium");
+      // Premium check: tier is "premium" AND (no expiry OR expiry in future)
+      const isPremium = profile.subscription_tier === "premium" &&
+        (!profile.subscription_expires_at || new Date(profile.subscription_expires_at) > new Date());
+
+      if (!isPremium) {
+        console.log("[speaking-eval] User is not premium. Tier:", profile.subscription_tier);
         return NextResponse.json({ error: "Premium subscription required" }, { status: 403 });
       }
 
