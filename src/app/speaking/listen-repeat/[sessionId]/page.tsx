@@ -47,6 +47,7 @@ export default function ListenRepeatSessionPage() {
     stopListening,
     isListening,
     transcript,
+    getTranscript,
     isSupported: sttSupported,
     setTranscript
   } = useSpeechRecognition();
@@ -100,9 +101,9 @@ export default function ListenRepeatSessionPage() {
   };
 
   const evaluateWithAI = async () => {
-    // Capture transcript BEFORE stopping (React state timing issue)
-    const capturedTranscript = transcript;
-    console.log("[evaluateWithAI] Captured transcript:", capturedTranscript);
+    // Use getTranscript() to get the sync ref value (not async state)
+    const capturedTranscript = getTranscript();
+    console.log("[evaluateWithAI] Captured transcript (from ref):", capturedTranscript);
 
     stopListening();
     setPhase("evaluating");
