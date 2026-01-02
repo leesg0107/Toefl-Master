@@ -236,5 +236,227 @@ export const discussionTopics: DiscussionTopic[] = [
     },
     category: "Higher Education",
     isPremium: true
+  },
+
+  // === NEW FREE TOPICS ===
+  {
+    id: "disc-15",
+    title: "Mandatory Class Attendance",
+    courseContext: "Your professor is teaching a class on educational policy.",
+    professorQuestion: "Many universities have attendance policies that require students to attend a certain percentage of classes or face grade penalties. Some professors believe attendance is essential for learning, while others think adult students should be responsible for their own education. Should universities enforce mandatory class attendance? What is your view?",
+    studentA: {
+      name: "Andrew",
+      response: "I think attendance should be mandatory. Regular class participation helps students stay engaged with the material, and discussions often cover content not found in textbooks. Students who skip class miss important insights and fall behind."
+    },
+    studentB: {
+      name: "Claire",
+      response: "I disagree. University students are adults who pay tuition and should decide how to use their time. Some students learn better through reading or online resources. If a student can pass exams without attending every class, forcing attendance seems unnecessary."
+    },
+    category: "Education Policy"
+  },
+  {
+    id: "disc-16",
+    title: "Online vs. In-Person Exams",
+    courseContext: "Your professor is teaching a class on assessment methods.",
+    professorQuestion: "Since the pandemic, many universities have offered online exams as an alternative to in-person testing. Some students prefer the convenience of taking exams at home, while others worry about technical issues and fairness. Should online exams continue to be offered after the pandemic? Share your thoughts.",
+    studentA: {
+      name: "Ben",
+      response: "Online exams should definitely continue. They are more convenient and reduce test anxiety for many students. Modern proctoring software can prevent cheating effectively. Plus, they accommodate students with disabilities or those who live far from campus."
+    },
+    studentB: {
+      name: "Mia",
+      response: "I prefer in-person exams because they create a fair testing environment for everyone. With online exams, some students have better internet and computers than others. There's also more opportunity for cheating, even with proctoring software."
+    },
+    category: "Education"
+  },
+  {
+    id: "disc-17",
+    title: "Free College Tuition",
+    courseContext: "Your professor is teaching a class on education economics.",
+    professorQuestion: "Some countries offer free university education to all citizens, while in others, students must pay significant tuition fees. Advocates argue free tuition promotes equality, while critics worry about quality and costs. Should university education be free for all students? What do you think?",
+    studentA: {
+      name: "Lucas",
+      response: "Yes, university education should be free. Education is a public good that benefits society as a whole through a more skilled workforce. Tuition barriers prevent talented students from low-income families from reaching their potential."
+    },
+    studentB: {
+      name: "Emily",
+      response: "Free tuition sounds good but isn't practical. Universities need funding to maintain quality, and if the government pays, taxpayers bear the cost. A better solution might be income-based repayment loans that make education accessible without being completely free."
+    },
+    category: "Education Economics"
+  },
+  {
+    id: "disc-18",
+    title: "Gap Year Benefits",
+    courseContext: "Your professor is teaching a class on student development.",
+    professorQuestion: "A gap year refers to a year-long break that students take between high school and college, often used for travel, work, or volunteering. Some believe this break helps students become more mature and focused, while others worry it disrupts academic momentum. Should students take a gap year before college? What is your perspective?",
+    studentA: {
+      name: "Grace",
+      response: "I think a gap year can be incredibly valuable. It gives students time to explore interests, gain real-world experience, and enter college with clearer goals. Many students who take gap years are more focused and mature when they start their studies."
+    },
+    studentB: {
+      name: "Henry",
+      response: "I think students should go directly to college after high school. A gap year can cause students to lose academic skills and study habits. It's also expensive if spent traveling, and some students never end up going to college at all."
+    },
+    category: "Student Development"
+  },
+  {
+    id: "disc-19",
+    title: "Animal Testing in Research",
+    courseContext: "Your professor is teaching a class on research ethics.",
+    professorQuestion: "Animal testing has been used for decades to develop medicines and test product safety. Some scientists argue it is necessary for medical advances, while animal rights advocates call it cruel and outdated. Should animal testing continue to be allowed for scientific research? Explain your reasoning.",
+    studentA: {
+      name: "Isabel",
+      response: "While I understand animal welfare concerns, some animal testing is still necessary. Many medical breakthroughs, including vaccines and cancer treatments, were only possible through animal research. Until alternatives are fully developed, we need animal testing to save human lives."
+    },
+    studentB: {
+      name: "Jack",
+      response: "I believe animal testing should be phased out. Modern technology offers alternatives like cell cultures, computer simulations, and organ-on-chip technology. Animals suffer in these experiments, and results don't always translate to humans anyway."
+    },
+    category: "Research Ethics"
+  },
+  {
+    id: "disc-20",
+    title: "Electric Vehicle Mandates",
+    courseContext: "Your professor is teaching a class on environmental policy.",
+    professorQuestion: "Several governments have announced plans to ban the sale of new gasoline-powered cars within the next decade or two, requiring a shift to electric vehicles. Supporters see this as essential for fighting climate change, while critics worry about cost and infrastructure. Should governments mandate the transition to electric vehicles? What do you think?",
+    studentA: {
+      name: "Kate",
+      response: "Yes, mandating electric vehicles is necessary to address climate change. The transportation sector is a major source of emissions, and voluntary adoption is too slow. Government mandates will push automakers to innovate and make EVs more affordable."
+    },
+    studentB: {
+      name: "Leo",
+      response: "I don't think the government should mandate electric vehicles. EVs are still too expensive for many families, and there aren't enough charging stations in rural areas. Instead of mandates, governments should focus on incentives and building infrastructure first."
+    },
+    category: "Environmental Policy"
+  },
+
+  // === NEW PREMIUM TOPICS ===
+  {
+    id: "disc-21",
+    title: "Social Media Age Restrictions",
+    courseContext: "Your professor is teaching a class on digital citizenship.",
+    professorQuestion: "Most social media platforms require users to be at least 13 years old, but many younger children create accounts anyway. Some argue platforms should implement stricter verification, while others believe parents should monitor their children's online activity. Should social media platforms enforce stricter age verification? Share your opinion.",
+    studentA: {
+      name: "Maya",
+      response: "Platforms should definitely enforce stricter age verification. Young children are vulnerable to cyberbullying, predators, and mental health issues from social media use. Companies have a responsibility to protect minors, even if verification is challenging."
+    },
+    studentB: {
+      name: "Noah",
+      response: "Strict verification would invade everyone's privacy and wouldn't work anyway. Kids would find ways around it. The responsibility should be on parents to monitor their children's online activities and teach them safe internet use."
+    },
+    category: "Digital Ethics",
+    isPremium: true
+  },
+  {
+    id: "disc-22",
+    title: "Four-Day Work Week",
+    courseContext: "Your professor is teaching a class on workplace productivity.",
+    professorQuestion: "Some companies have experimented with a four-day work week, where employees work the same total hours over four days instead of five, or work fewer hours for the same pay. Proponents claim it increases productivity and well-being. Should businesses adopt a four-day work week? What is your view?",
+    studentA: {
+      name: "Oliver",
+      response: "A four-day work week would benefit both employees and companies. Studies show that well-rested workers are more productive. The extra day off reduces stress and burnout, leading to better work quality and lower turnover."
+    },
+    studentB: {
+      name: "Penny",
+      response: "While the idea is appealing, it's not practical for all businesses. Customer service, healthcare, and retail need staff available five or more days a week. Compressing hours into four days could also lead to exhausting 10-hour shifts."
+    },
+    category: "Business",
+    isPremium: true
+  },
+  {
+    id: "disc-23",
+    title: "Nuclear Energy Expansion",
+    courseContext: "Your professor is teaching a class on energy policy.",
+    professorQuestion: "Nuclear power generates electricity without producing greenhouse gas emissions, but concerns about safety and nuclear waste persist. Some argue we should build more nuclear plants to combat climate change, while others prefer renewable sources like solar and wind. Should countries expand nuclear energy production? Explain your position.",
+    studentA: {
+      name: "Quentin",
+      response: "Nuclear energy should be expanded because it provides reliable, carbon-free electricity. Solar and wind are intermittent and need backup power sources. Modern nuclear plants are much safer than older designs, and nuclear waste can be stored safely."
+    },
+    studentB: {
+      name: "Rosa",
+      response: "I think we should invest in renewable energy instead of nuclear. The risks of nuclear accidents, even if rare, are catastrophic. Nuclear waste remains dangerous for thousands of years. Renewable energy costs are dropping rapidly and don't carry these risks."
+    },
+    category: "Energy Policy",
+    isPremium: true
+  },
+  {
+    id: "disc-24",
+    title: "Fast Fashion Impact",
+    courseContext: "Your professor is teaching a class on sustainable consumption.",
+    professorQuestion: "Fast fashion refers to the rapid production of inexpensive clothing that follows the latest trends. Critics argue it leads to environmental damage and poor labor conditions, while supporters note it makes fashion accessible to everyone. Should consumers avoid fast fashion brands? What do you think?",
+    studentA: {
+      name: "Sophia",
+      response: "I think people should try to avoid fast fashion when possible. The environmental impact is massive – from water pollution to textile waste. Supporting sustainable brands or buying secondhand encourages better practices across the industry."
+    },
+    studentB: {
+      name: "Tyler",
+      response: "Not everyone can afford sustainable fashion, which tends to be more expensive. Fast fashion allows people with limited budgets to dress well and express themselves. The solution should be reforming the industry's practices, not shaming consumers."
+    },
+    category: "Consumer Ethics",
+    isPremium: true
+  },
+  {
+    id: "disc-25",
+    title: "Homework Abolition",
+    courseContext: "Your professor is teaching a class on learning science.",
+    professorQuestion: "Some educators argue that homework, especially for younger students, provides little academic benefit and takes time away from family, play, and rest. Others believe homework is essential for reinforcing learning and developing self-discipline. Should schools reduce or eliminate homework? Share your perspective.",
+    studentA: {
+      name: "Uma",
+      response: "Schools should significantly reduce homework. Research shows that for elementary students, homework has minimal academic benefits. Children need time for physical activity, creative play, and family bonding, which contribute more to healthy development."
+    },
+    studentB: {
+      name: "Victor",
+      response: "Homework teaches important skills like time management and self-discipline. It also helps students review and practice what they learned in class. Instead of eliminating homework, teachers should assign meaningful tasks in reasonable amounts."
+    },
+    category: "Education",
+    isPremium: true
+  },
+  {
+    id: "disc-26",
+    title: "Book Censorship in Libraries",
+    courseContext: "Your professor is teaching a class on intellectual freedom.",
+    professorQuestion: "Recently, there have been increasing efforts to remove certain books from school and public libraries, with concerns about age-appropriate content. Some argue that libraries should reflect community values, while others believe this constitutes censorship. Should libraries have the right to remove controversial books? What is your opinion?",
+    studentA: {
+      name: "Wendy",
+      response: "Libraries should have diverse collections that represent many perspectives. Removing books because some find them controversial is censorship. Parents can guide their own children's reading, but libraries shouldn't restrict access for everyone."
+    },
+    studentB: {
+      name: "Xavier",
+      response: "I think communities should have input on what's available in their libraries, especially school libraries. Some content isn't appropriate for young children. Having age-appropriate sections or parental consent for certain books seems like a reasonable compromise."
+    },
+    category: "Social Policy",
+    isPremium: true
+  },
+  {
+    id: "disc-27",
+    title: "Single-Use Plastics Ban",
+    courseContext: "Your professor is teaching a class on environmental sustainability.",
+    professorQuestion: "Many cities and countries have banned single-use plastic items like bags, straws, and utensils to reduce pollution. While this helps the environment, some argue it inconveniences consumers and hurts businesses. Should governments ban single-use plastics? What do you think?",
+    studentA: {
+      name: "Yuki",
+      response: "Banning single-use plastics is necessary because they take hundreds of years to decompose and harm wildlife. Alternatives exist, and people adapt quickly to changes. The environmental benefits far outweigh the minor inconvenience."
+    },
+    studentB: {
+      name: "Zach",
+      response: "While reducing plastic is important, outright bans can be difficult for some businesses and individuals. People with disabilities may need plastic straws. I think education and incentives work better than bans, letting consumers make informed choices."
+    },
+    category: "Environmental Policy",
+    isPremium: true
+  },
+  {
+    id: "disc-28",
+    title: "Celebrity Political Activism",
+    courseContext: "Your professor is teaching a class on political communication.",
+    professorQuestion: "Celebrities increasingly use their platforms to advocate for political causes and candidates. Some believe famous people have a responsibility to speak out on important issues, while others think they should stay out of politics. Should celebrities use their influence for political activism? Explain your view.",
+    studentA: {
+      name: "Alice",
+      response: "Celebrities have every right to express political views and can bring attention to important issues. Their large platforms can mobilize young voters and raise awareness about causes that might otherwise be ignored by mainstream media."
+    },
+    studentB: {
+      name: "Brandon",
+      response: "I think celebrities should be careful about political activism. Just because someone is famous doesn't mean they're experts on policy issues. Their influence can mislead fans who might not research the issues independently."
+    },
+    category: "Political Communication",
+    isPremium: true
   }
 ];
