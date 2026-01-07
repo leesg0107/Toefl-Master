@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -52,6 +52,13 @@ export default function ListenRepeatSessionPage() {
     setTranscript
   } = useSpeechRecognition();
 
+  // Keep a ref that always has the latest transcript value
+  const transcriptRef = useRef(transcript);
+  useEffect(() => {
+    transcriptRef.current = transcript;
+    console.log("[transcriptRef] Updated to:", transcript);
+  }, [transcript]);
+
   // Redirect if not premium
   useEffect(() => {
     if (!isPremium) {
@@ -101,12 +108,23 @@ export default function ListenRepeatSessionPage() {
   };
 
   const evaluateWithAI = async () => {
-    // Use getTranscript() to get the sync ref value (not async state)
-    const capturedTranscript = getTranscript();
-    console.log("[evaluateWithAI] Captured transcript (from ref):", capturedTranscript);
-
+    // First stop listening to finalize the transcript
     stopListening();
     setPhase("evaluating");
+
+    // Wait a moment for speech recognition to finalize and React to update
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // Get transcript from local ref (updated via useEffect when transcript state changes)
+    const fromLocalRef = transcriptRef.current;
+    const fromHookRef = getTranscript();
+
+    console.log("[evaluateWithAI] From local ref:", fromLocalRef);
+    console.log("[evaluateWithAI] From hook ref:", fromHookRef);
+
+    // Use whichever has a value
+    const finalTranscript = fromLocalRef || fromHookRef || "(no speech detected)";
+    console.log("[evaluateWithAI] Final transcript to send:", finalTranscript);
 
     console.log("[evaluateWithAI] Auth session exists:", !!authSession);
     console.log("[evaluateWithAI] Token exists:", !!authSession?.access_token);
@@ -120,7 +138,7 @@ export default function ListenRepeatSessionPage() {
         },
         body: JSON.stringify({
           targetSentence: currentSentence,
-          userTranscript: capturedTranscript || "(no speech detected)",
+          userTranscript: finalTranscript,
           sessionTitle: sessionData.title,
           location: sessionData.location,
         }),
@@ -133,7 +151,7 @@ export default function ListenRepeatSessionPage() {
         setCurrentFeedback(data.feedback);
         setResults([...results, {
           correct: data.isCorrect,
-          userText: capturedTranscript || "(no speech detected)",
+          userText: finalTranscript,
           feedback: data.feedback,
           score: data.score,
         }]);
@@ -144,7 +162,7 @@ export default function ListenRepeatSessionPage() {
         setCurrentFeedback(`Error: ${errorMessage} (Status: ${response.status})`);
         setResults([...results, {
           correct: false,
-          userText: capturedTranscript || "(no speech detected)",
+          userText: finalTranscript,
           feedback: `API Error: ${errorMessage}`,
           score: 0,
         }]);
@@ -154,7 +172,7 @@ export default function ListenRepeatSessionPage() {
       setCurrentFeedback("Could not get AI feedback. Please try again.");
       setResults([...results, {
         correct: false,
-        userText: capturedTranscript || "(no speech detected)",
+        userText: finalTranscript,
         feedback: "Evaluation failed",
         score: 0,
       }]);
